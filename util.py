@@ -10,7 +10,7 @@ class Product:
         self.product_order = product_order
         self.description = description
     def __str__(self):
-        return '\'' + self.description[:5] + '\''
+        return "'" + self.description[:5] + "'"
 
 class Order:
     def __init__(self, account, product, side, price):

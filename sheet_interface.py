@@ -4,14 +4,14 @@ from oauth2client.service_account import ServiceAccountCredentials
 import settings
 
 class SheetInterface:
-    def __init__(self):
+    def __init__(self, sheet_name):
         self.NUM_TO_CHAR = [''] + [chr(i) for i in range(ord('A'), ord('Z') + 1)] + \
             ['A' + chr(i) for i in range(ord('A'), ord('Z') + 1)]
 
         self.credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', settings.SCOPE)
         self.client = gspread.authorize(self.credentials)
 
-        self.main_sheet = self.client.open(settings.SHEET_NAME).sheet1
+        self.main_sheet = self.client.open(sheet_name).sheet1
         self.sheet1_values = self.main_sheet.get_all_values()
 
         self.order_books_raw = []
