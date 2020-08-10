@@ -4,8 +4,10 @@ import os
 import discord
 from discord.ext import commands
 
-import init
+from controller import Controller
 from util import Side
+
+import settings
 
 TOKEN = config('DISCORD_TOKEN')
 ADMINS = ['mzhao#1429']
@@ -18,18 +20,17 @@ POSITION_LIMIT = 5
 
 ####################
 
-engine = None
-id_to_product = dict()
-discord_id_to_account = dict()
+controller = None
+
 get_name = lambda author: author.name if author.nick == None else author.nick
 
 def print_books():
     print('\nBooks:')
-    engine.print_order_books()
+    controller.engine.print_order_books()
 
 def print_accounts():
     print('\nAccounts:')
-    for account in engine.accounts:
+    for account in controller.accounts:
         account.print_account()
         print()
 
@@ -38,19 +39,15 @@ def print_accounts():
 bot = commands.Bot(command_prefix='$$')
 
 
+
 @bot.event
 async def on_ready():
-    global engine
-    global id_to_product
-    engine = init.main(POSITION_LIMIT)
-    for product in engine.products:
-        id_to_product[product.product_id] = product
-    for account in engine.accounts:
-        discord_id_to_account[account.discord_id] = account
-    
-    print('Bot Open')
+    global controller
+    controller = Controller('F1 Market')
+    controller.init_from_sheet()
     print_books()
     print_accounts()
+    print('Bot Open')
 
 
 
@@ -80,7 +77,7 @@ async def buy_command(ctx, *args):
         await ctx.send('USAGE: $$buy [event number] [price between 0-100]')
     
     discord_id = ctx.author.id
-    if discord_id not in discord_id_to_account:
+    if not controller.has_user(discord_id):
         await ctx.message.add_reaction(FAILURE_EMOJI)
         await ctx.send('ERROR: You are not registered in the game')
         return
@@ -94,24 +91,25 @@ async def buy_command(ctx, *args):
     except ValueError:
         await usage(ctx)
         return
-    if product_id not in id_to_product:
+    if product_id <= 0 or product_id > len(settings.PRODUCTS):
         await usage(ctx)
         return
     if price < 0 or price > 100:
         await usage(ctx)
         return
-    
-    account = discord_id_to_account[discord_id]
-    product = id_to_product[product_id]
-    result = engine.process_bid(account, product, Side.BUY, price, True)
 
-    if result[0] == -1:
+    result = controller.process_bid(discord_id, product_id, Side.BUY, price, True)
+
+    if result[0] == -2:
         await ctx.message.add_reaction(FAILURE_EMOJI)
         await ctx.send('ERROR: You cannot both buy and sell the same event at the same price')
         return
-    if result[0] == -2:
+    if result[0] == -1:
         await ctx.message.add_reaction(FAILURE_EMOJI)
         await ctx.send('ERROR: You are at the position limit for this event. You can only sell')
+        return
+    if result[0] == -3:
+        await ctx.message.add_reaction(FAILURE_EMOJI)
         return
 
     await ctx.message.add_reaction(SUCCESS_EMOJI)
@@ -131,7 +129,7 @@ async def sell_command(ctx, *args):
         await ctx.send('USAGE: $$sell [event number] [price between 0-100]')
 
     discord_id = ctx.author.id
-    if discord_id not in discord_id_to_account:
+    if not controller.has_user(discord_id):
         await ctx.message.add_reaction(FAILURE_EMOJI)
         await ctx.send('ERROR: You are not registered in the game')
         return
@@ -145,24 +143,25 @@ async def sell_command(ctx, *args):
     except ValueError:
         await usage(ctx)
         return
-    if product_id not in id_to_product:
+    if product_id <= 0 or product_id > len(settings.PRODUCTS):
         await usage(ctx)
         return
     if price < 0 or price > 100:
         await usage(ctx)
         return
     
-    account = discord_id_to_account[discord_id]
-    product = id_to_product[product_id]
-    result = engine.process_bid(account, product, Side.SELL, price, True)
+    result = controller.process_bid(discord_id, product_id, Side.SELL, price, True)
 
-    if result[0] == -1:
+    if result[0] == -2:
         await ctx.message.add_reaction(FAILURE_EMOJI)
         await ctx.send('ERROR: You cannot both buy and sell the same event at the same price')
         return
-    if result[0] == -2:
+    if result[0] == -1:
         await ctx.message.add_reaction(FAILURE_EMOJI)
         await ctx.send('ERROR: You are at the position limit for this event. You can only buy')
+        return
+    if result[0] == -3:
+        await ctx.message.add_reaction(FAILURE_EMOJI)
         return
 
     await ctx.message.add_reaction(SUCCESS_EMOJI)
@@ -182,7 +181,7 @@ async def cancel_command(ctx, *args):
         await ctx.send('USAGE: $$cancel [buy/sell] [event number]')
     
     discord_id = ctx.author.id
-    if discord_id not in discord_id_to_account:
+    if not controller.has_user(discord_id):
         await ctx.message.add_reaction(FAILURE_EMOJI)
         await ctx.send('ERROR: You are not registered in the game')
         return
@@ -196,13 +195,11 @@ async def cancel_command(ctx, *args):
     except ValueError:
         await usage(ctx)
         return
-    if product_id not in id_to_product:
+    if product_id <= 0 or product_id > len(settings.PRODUCTS):
         await usage(ctx)
         return
     
-    account = discord_id_to_account[discord_id]
-    product = id_to_product[product_id]
-    result = engine.process_cancel(account, product, side, True)
+    result = controller.process_cancel(discord_id, product_id, side, True)
 
     if result == -1:
         await ctx.message.add_reaction(FAILURE_EMOJI)
@@ -215,26 +212,30 @@ async def cancel_command(ctx, *args):
 
 @bot.command(name='adduser')
 async def adduser_command(ctx, *args):
-    if len(discord_id_to_account) >= USER_LIMIT:
-        print('too many users already in the game')
-        await ctx.message.add_reaction(FAILURE_EMOJI)
-        return
     if str(ctx.author) not in ADMINS:
         print(str(ctx.author), 'tried to access $$adduser')
         await ctx.message.add_reaction(FAILURE_EMOJI)
         return
+
     id = args[0]
     while not id[0].isdigit():
         id = id[1:]
     id = int(id[:-1])
-    if id in discord_id_to_account:
+
+    if controller.has_user(id):
         print(args[0], 'is already in the game')
         await ctx.message.add_reaction(FAILURE_EMOJI)
         return
-    
+
     user = ctx.guild.get_member(id)
     init.add_account(engine.sheet_writer, id, get_name(user))
-    discord_id_to_account[id] = engine.accounts[-1]
+    result = controller.add_account(id, get_name(user))
+
+    if result == -1:
+        print('too many users already in the game')
+        await ctx.message.add_reaction(FAILURE_EMOJI)
+        return
+    
     await ctx.message.add_reaction(SUCCESS_EMOJI)
 
     print('ADDED USER')
@@ -261,7 +262,7 @@ async def mark(ctx, *args):
         return
     
     did_occur = args[1] == 'y'
-    engine.mark_occurred(id_to_product[product_id], did_occur)
+    controller.mark_occurred(product_id, did_occur)
     await ctx.message.add_reaction(SUCCESS_EMOJI)
     print('marked ' + str(product_id) + (' occurred' if did_occur else ' did not occur'))
     print_accounts()

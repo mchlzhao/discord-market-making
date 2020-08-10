@@ -30,7 +30,7 @@ class Controller:
 
         init_orders = self.get_orders_from_raw(self.sheet_interface.order_books_raw)
         for product, side, name, price in init_orders:
-            self.process_bid(self.name_to_account[name].discord_id, product, side, price, False)
+            self.process_bid(self.name_to_account[name].discord_id, product.product_id, side, price, False)
     
     def get_accounts_from_raw(self, accounts_raw):
         accounts_list = []
@@ -58,8 +58,12 @@ class Controller:
                     init_orders_list.append((products[order], Side(side), name, int(price)))
         return init_orders_list
     
+    # error code: -1 = no more space
     def add_account(self, discord_id, name):
+        if len(self.accounts) >= settings.USER_LIMIT:
+            return -1
         self.import_accounts([Account(discord_id, name, len(self.accounts), products)])
+        return 0
     
     def import_accounts(self, accounts):
         for account in accounts:
@@ -69,10 +73,14 @@ class Controller:
             self.sheet_interface.add_account(account)
         self.sheet_interface.batch_update()
     
+    def has_user(self, discord_id):
+        return discord_id in self.discord_id_to_account
+    
     # returns (error code, Transaction())
     # error codes: -1 = position limit breach    -2 = in cross with self   -3 = price not in bounds
-    def process_bid(self, discord_id, product, side, price, do_write):
+    def process_bid(self, discord_id, product_id, side, price, do_write):
         account = self.discord_id_to_account[discord_id]
+        product = settings.PRODUCTS[product_id-1]
 
         if price < 0 or price > 100:
             return (-3, None)
@@ -115,8 +123,9 @@ class Controller:
         return (0, result)
     
     # error codes: -1 = bid does not exist
-    def process_cancel(self, discord_id, product, side, do_write):
+    def process_cancel(self, discord_id, product_id, side, do_write):
         account = self.discord_id_to_account[discord_id]
+        product = settings.PRODUCTS[product_id-1]
 
         if self.engine.account_has_existing_order(account, product, side) == -1:
             return -1
