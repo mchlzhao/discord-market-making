@@ -1,4 +1,4 @@
-from util import Transaction, Side
+from util import Side, Transaction
 
 class OrderBook:
     def __init__(self, product):

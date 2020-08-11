@@ -1,6 +1,7 @@
+from account import Account
 from engine import Engine
 from sheet_interface import SheetInterface
-from util import Account, Product, Side
+from util import Product, Side
 
 import settings
 
@@ -35,7 +36,7 @@ class Controller:
     def get_accounts_from_raw(self, accounts_raw):
         accounts_list = []
         for account_order, account_raw in enumerate(accounts_raw):
-            cur_account = Account(int(account_raw[0]), account_raw[1], account_order, products)
+            cur_account = Account(int(account_raw[0]), account_raw[1], account_order)
 
             cur_account.balance = int(account_raw[2])
             assert(len(account_raw) == 3+len(products))
@@ -52,17 +53,20 @@ class Controller:
             print('NUMBER OF PRODUCTS DON\'T MATCH')
             print('expected %d    got %d' % (len(products), len(order_books_raw)))
             assert(False)
+
         for order, product_raw in enumerate(order_books_raw):
             for side, side_raw in enumerate(product_raw):
                 for name, price in side_raw:
                     init_orders_list.append((products[order], Side(side), name, int(price)))
+
         return init_orders_list
     
     # error code: -1 = no more space
     def add_account(self, discord_id, name):
         if len(self.accounts) >= settings.USER_LIMIT:
             return -1
-        self.import_accounts([Account(discord_id, name, len(self.accounts), products)])
+
+        self.import_accounts([Account(discord_id, name, len(self.accounts))])
         return 0
     
     def import_accounts(self, accounts):
@@ -71,6 +75,7 @@ class Controller:
             self.discord_id_to_account[account.discord_id] = account
             self.accounts.append(account)
             self.sheet_interface.add_account(account)
+
         self.sheet_interface.batch_update()
     
     def has_user(self, discord_id):
@@ -80,7 +85,7 @@ class Controller:
     # error codes: -1 = position limit breach    -2 = in cross with self   -3 = price not in bounds
     def process_bid(self, discord_id, product_id, side, price, do_write):
         account = self.discord_id_to_account[discord_id]
-        product = settings.PRODUCTS[product_id-1]
+        product = products[product_id-1]
 
         if price < 0 or price > 100:
             return (-3, None)
@@ -125,7 +130,7 @@ class Controller:
     # error codes: -1 = bid does not exist
     def process_cancel(self, discord_id, product_id, side, do_write):
         account = self.discord_id_to_account[discord_id]
-        product = settings.PRODUCTS[product_id-1]
+        product = products[product_id-1]
 
         if self.engine.account_has_existing_order(account, product, side) == -1:
             return -1
@@ -138,12 +143,14 @@ class Controller:
 
         return 0
     
-    def mark_occurred(self, product_id, did_occur):
+    def mark_occurred(self, product_id, did_occur, do_write):
         if did_occur == False:
             return
         
         for account in self.accounts:
             account.balance += 100 * account.inventory[products[product_id-1]]
-            self.sheet_interface.update_account(account)
+            if do_write:
+                self.sheet_interface.update_account(account)
 
-        self.sheet_interface.batch_update()
+        if do_write:
+            self.sheet_interface.batch_update()

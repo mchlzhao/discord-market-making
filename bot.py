@@ -53,8 +53,8 @@ async def on_ready():
 
 @bot.command(name='test')
 async def test_command(ctx):
-    await ctx.send(get_name(ctx.author))
     await ctx.message.add_reaction(SUCCESS_EMOJI)
+    await ctx.send(get_name(ctx.author))
 
 
 
@@ -262,7 +262,7 @@ async def mark(ctx, *args):
         return
     
     did_occur = args[1] == 'y'
-    controller.mark_occurred(product_id, did_occur)
+    controller.mark_occurred(product_id, did_occur, True)
     await ctx.message.add_reaction(SUCCESS_EMOJI)
     print('marked ' + str(product_id) + (' occurred' if did_occur else ' did not occur'))
     print_accounts()

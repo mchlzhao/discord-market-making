@@ -40,6 +40,7 @@ class Engine:
             
             transaction = Transaction(account, lowest_sell[0], product, lowest_sell[1])
             self.process_cancel(lowest_sell[0], product, Side.SELL)
+
         else:
             highest_buy = order_book.get_best_buy()
 
