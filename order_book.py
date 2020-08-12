@@ -42,7 +42,7 @@ class OrderBook:
     
     def get_book_in_list(self, side):
         '''
-        flattens order book into 1D list for display on spreadsheet
+        flattens order book into 1D list
         orders the return list by price-time priority, with highest priority first
         '''
         ret = []

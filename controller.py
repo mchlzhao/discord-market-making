@@ -109,7 +109,7 @@ class Controller:
             self.accounts.append(account)
 
             if do_write:
-                self.sheet_interface.add_account(account)
+                self.sheet_interface.update_account(account)
 
         if do_write:
             self.sheet_interface.batch_update()
@@ -162,10 +162,10 @@ class Controller:
 
         logging.info('bid %s %s %s %d', account.name, product.description, side.name, price)
 
-        if result == None:
-            if do_write:
-                self.sheet_interface.update_order_book(product, side, self.engine.order_books[product].get_book_in_list(side))
-        else:
+        if do_write:
+            self.sheet_interface.update_order_book(self.engine.order_books[product])
+
+        if result != None:
             result.buyer_account.process_transaction(product, Side.BUY, result.price)
             result.seller_account.process_transaction(product, Side.SELL, result.price)
 
@@ -174,8 +174,6 @@ class Controller:
             if do_write:
                 self.sheet_interface.update_account(result.buyer_account)
                 self.sheet_interface.update_account(result.seller_account)
-                self.sheet_interface.update_order_book(product, Side.BUY, self.engine.order_books[product].get_book_in_list(Side.BUY))
-                self.sheet_interface.update_order_book(product, Side.SELL, self.engine.order_books[product].get_book_in_list(Side.SELL))
 
         if do_write:
             self.sheet_interface.batch_update()
@@ -209,7 +207,7 @@ class Controller:
         logging.info('cancel %s %s %s', account.name, product.description, side.name)
 
         if do_write:
-            self.sheet_interface.update_order_book(product, side, self.engine.order_books[product].get_book_in_list(side))
+            self.sheet_interface.update_order_book(self.engine.order_books[product])
             self.sheet_interface.batch_update()
 
         return 0

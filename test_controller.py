@@ -6,7 +6,7 @@ from util import Side
 
 import settings
 
-do_write = False
+do_write = True
 
 class TestController(unittest.TestCase):
     def setUp(self):

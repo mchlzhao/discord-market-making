@@ -1,13 +1,16 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+from util import Side
+
 import settings
 
 class SheetInterface:
+    ''' Converts column number into letter notation '''
+    NUM_TO_CHAR = [''] + [chr(i) for i in range(ord('A'), ord('Z') + 1)] + \
+        ['A' + chr(i) for i in range(ord('A'), ord('Z') + 1)]
+
     def __init__(self, sheet_name):
-        ''' Converts column number into letter notation '''
-        self.NUM_TO_CHAR = [''] + [chr(i) for i in range(ord('A'), ord('Z') + 1)] + \
-            ['A' + chr(i) for i in range(ord('A'), ord('Z') + 1)]
 
         self.credentials = ServiceAccountCredentials.from_json_keyfile_name('credentials.json', settings.SCOPE)
         self.client = gspread.authorize(self.credentials)
@@ -84,23 +87,27 @@ class SheetInterface:
         
         return raw_data
     
-    def update_order_book(self, product, side, order_book_list):
+    def update_order_book(self, order_book):
         '''
         takes corresponding order book of a product on a particular side in list form
         appends a request body to self.batch, waiting to be updated in a batch
         '''
-        cur_row = settings.ORDER_BOOK_ROW + 5*product.product_order + 2*int(side)
+        product = order_book.product
+        cur_row = settings.ORDER_BOOK_ROW + 5*product.product_order
         cur_col = settings.ORDER_BOOK_COL + 2
 
-        values = [[], []]
-        for account, price in order_book_list:
-            values[0].append(account.name)
-            values[1].append(str(price))
-        for i in range(2):
+        values = [[] for i in range(4)]
+        for side in Side:
+            order_book_list = order_book.get_book_in_list(side)
+            for account, price in order_book_list:
+                values[2 * int(side)].append(account.name)
+                values[2 * int(side) + 1].append(str(price))
+
+        for i in range(4):
             values[i] += [''] * (settings.USER_LIMIT - len(values[i]))
 
         self.batch.append({
-            'range': self.get_range_string(cur_col, cur_row, settings.USER_LIMIT, 2),
+            'range': self.get_range_string(cur_col, cur_row, settings.USER_LIMIT, 4),
             'values': values
         })
     
@@ -109,32 +116,17 @@ class SheetInterface:
         takes Account object
         appends a request body to self.batch
         '''
-        cur_row = settings.ACCOUNT_ROW + 2
-        cur_col = settings.ACCOUNT_COL + 1 + account.account_order
-
-        values = [[account.balance]]
-        temp = []
-        for product, position in account.inventory.items():
-            temp.append((product.product_order, position))
-        temp.sort()
-        for _, y in temp:
-            values.append([y])
-
-        self.batch.append({
-            'range': self.get_range_string(cur_col, cur_row, 1, len(account.inventory) + 1),
-            'values': values
-        })
-
-    def add_account(self, account):
         cur_row = settings.ACCOUNT_ROW
         cur_col = settings.ACCOUNT_COL + 1 + account.account_order
 
-        self.batch.append({
-            'range': self.get_range_string(cur_col, cur_row, 1, 2),
-            'values': [[str(account.account_id)], [account.name]]
-        })
+        values = [[account.account_id], [account.name], [account.balance]] + [None] * len(account.products)
+        for product in account.products:
+            values[product.product_order + 3] = [account.inventory[product]]
 
-        self.update_account(account)
+        self.batch.append({
+            'range': self.get_range_string(cur_col, cur_row, 1, len(account.products) + 3),
+            'values': values
+        })
     
     def batch_update(self):
         '''
