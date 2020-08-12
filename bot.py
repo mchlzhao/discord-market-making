@@ -43,7 +43,7 @@ bot = commands.Bot(command_prefix='$$')
 @bot.event
 async def on_ready():
     global controller
-    controller = Controller('F1 Market')
+    controller = Controller('F1 Market', settings.PRODUCTS)
     controller.init_from_sheet()
     print_books()
     print_accounts()
@@ -91,12 +91,6 @@ async def buy_command(ctx, *args):
     except ValueError:
         await usage(ctx)
         return
-    if product_id <= 0 or product_id > len(settings.PRODUCTS):
-        await usage(ctx)
-        return
-    if price < 0 or price > 100:
-        await usage(ctx)
-        return
 
     result = controller.process_bid(discord_id, product_id, Side.BUY, price, True)
 
@@ -110,6 +104,11 @@ async def buy_command(ctx, *args):
         return
     if result[0] == -3:
         await ctx.message.add_reaction(FAILURE_EMOJI)
+        await ctx.send('ERROR: Price must be between 0 and 100 inclusive')
+        return
+    if result[0] == -4:
+        await ctx.message.add_reaction(FAILURE_EMOJI)
+        await ctx.send('ERROR: Product does not exist')
         return
 
     await ctx.message.add_reaction(SUCCESS_EMOJI)
@@ -143,12 +142,6 @@ async def sell_command(ctx, *args):
     except ValueError:
         await usage(ctx)
         return
-    if product_id <= 0 or product_id > len(settings.PRODUCTS):
-        await usage(ctx)
-        return
-    if price < 0 or price > 100:
-        await usage(ctx)
-        return
     
     result = controller.process_bid(discord_id, product_id, Side.SELL, price, True)
 
@@ -162,6 +155,11 @@ async def sell_command(ctx, *args):
         return
     if result[0] == -3:
         await ctx.message.add_reaction(FAILURE_EMOJI)
+        await ctx.send('ERROR: Price must be between 0 and 100 inclusive')
+        return
+    if result[0] == -4:
+        await ctx.message.add_reaction(FAILURE_EMOJI)
+        await ctx.send('ERROR: Product does not exist')
         return
 
     await ctx.message.add_reaction(SUCCESS_EMOJI)
@@ -195,15 +193,16 @@ async def cancel_command(ctx, *args):
     except ValueError:
         await usage(ctx)
         return
-    if product_id <= 0 or product_id > len(settings.PRODUCTS):
-        await usage(ctx)
-        return
     
     result = controller.process_cancel(discord_id, product_id, side, True)
 
     if result == -1:
         await ctx.message.add_reaction(FAILURE_EMOJI)
         await ctx.send('ERROR: You do not have such an order to cancel')
+        return
+    if result == -2:
+        await ctx.message.add_reaction(FAILURE_EMOJI)
+        await ctx.send('ERROR: Product does not exist')
         return
     
     await ctx.message.add_reaction(SUCCESS_EMOJI)
@@ -228,7 +227,6 @@ async def adduser_command(ctx, *args):
         return
 
     user = ctx.guild.get_member(id)
-    init.add_account(engine.sheet_writer, id, get_name(user))
     result = controller.add_account(id, get_name(user))
 
     if result == -1:
@@ -262,7 +260,13 @@ async def mark(ctx, *args):
         return
     
     did_occur = args[1] == 'y'
-    controller.mark_occurred(product_id, did_occur, True)
+    result = controller.mark_occurred(product_id, did_occur, True)
+
+    if result == -1:
+        await ctx.message.add_reaction(FAILURE_EMOJI)
+        await ctx.send('ERROR: Product does not exist')
+        return
+
     await ctx.message.add_reaction(SUCCESS_EMOJI)
     print('marked ' + str(product_id) + (' occurred' if did_occur else ' did not occur'))
     print_accounts()

@@ -14,10 +14,8 @@ class SheetInterface:
         self.main_sheet = self.client.open(sheet_name).sheet1
         self.sheet1_values = self.main_sheet.get_all_values()
 
-        self.order_books_raw = []
-        self.get_order_books_raw()
-        self.accounts_raw = []
-        self.get_accounts_raw()
+        self.order_books_raw = self.get_order_books_raw()
+        self.accounts_raw = self.get_accounts_raw()
 
         self.batch = []
     
@@ -34,6 +32,8 @@ class SheetInterface:
         table_row = settings.ORDER_BOOK_ROW - 1
         table_col = settings.ORDER_BOOK_COL - 1
 
+        raw_data = []
+
         while table_row < len(self.sheet1_values) and self.sheet1_values[table_row + 1][table_col][:5] == 'Event':
             cur_product = [[], []]
             cur_row = table_row
@@ -47,16 +47,20 @@ class SheetInterface:
                 cur_row += 2
                 cur_col = table_col + 2
 
-            self.order_books_raw.append(cur_product)
+            raw_data.append(cur_product)
             table_row += 5
+        
+        return raw_data
     
     # formats accounts table from sheet 1 as a list of lists
-    # each inner list is a column from the table [discord_id, name, inventory...]
+    # each inner list is a column from the table [account_id, name, inventory...]
     # every entry is a str
     def get_accounts_raw(self):
         # 0-indexed
         table_row = settings.ACCOUNT_ROW - 1
         table_col = settings.ACCOUNT_COL
+
+        raw_data = []
 
         while table_col < len(self.sheet1_values[table_row]) and self.sheet1_values[table_row][table_col] != '':
             cur_account = []
@@ -67,8 +71,10 @@ class SheetInterface:
 
                 cur_row += 1
             
-            self.accounts_raw.append(cur_account)
+            raw_data.append(cur_account)
             table_col += 1
+        
+        return raw_data
     
     def update_order_book(self, product, side, order_book_list):
         cur_row = settings.ORDER_BOOK_ROW + 5*product.product_order + 2*int(side)
@@ -109,7 +115,7 @@ class SheetInterface:
 
         self.batch.append({
             'range': self.get_range_string(cur_col, cur_row, 1, 2),
-            'values': [[str(account.discord_id)], [account.name]]
+            'values': [[str(account.account_id)], [account.name]]
         })
 
         self.update_account(account)

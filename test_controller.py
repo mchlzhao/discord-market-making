@@ -8,14 +8,10 @@ import settings
 
 class TestController(unittest.TestCase):
     def setUp(self):
-        self.controller = Controller('Local Testing')
-        self.accounts = [
-            Account(0, 'a', 0),
-            Account(1, 'b', 1),
-            Account(2, 'c', 2),
-            Account(3, 'd', 3),
-        ]
-        self.controller.import_accounts(self.accounts)
+        self.controller = Controller('Local Testing', settings.PRODUCTS)
+        for id, name in zip(range(0, 4), 'abcd'):
+            self.controller.add_account(id, name)
+        self.accounts = self.controller.accounts
 
     def tearDown(self):
         pass
@@ -45,6 +41,10 @@ class TestController(unittest.TestCase):
         self.assertTrue(result[0] == -3)
         result = self.controller.process_bid(0, 1, Side.SELL, 101, do_write)
         self.assertTrue(result[0] == -3)
+
+        # product does not exist
+        result = self.controller.process_bid(2, 0, Side.BUY, 50, do_write)
+        self.assertTrue(result[0] == -4)
 
         # cancelling 
         result = self.controller.process_cancel(0, 1, Side.SELL, do_write)
