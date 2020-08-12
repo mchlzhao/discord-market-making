@@ -6,19 +6,19 @@ from util import Side
 
 import settings
 
+do_write = False
+
 class TestController(unittest.TestCase):
     def setUp(self):
-        self.controller = Controller('Local Testing', settings.PRODUCTS)
+        self.controller = Controller('Local Testing', 'local.log', settings.PRODUCTS)
         for id, name in zip(range(0, 4), 'abcd'):
-            self.controller.add_account(id, name)
+            self.controller.add_account(id, name, do_write)
         self.accounts = self.controller.accounts
 
     def tearDown(self):
         pass
 
     def test_all(self):
-        do_write = True
-
         order_book0 = self.controller.engine.order_books[settings.PRODUCTS[0]]
 
         # posting buy and sell

@@ -5,6 +5,7 @@ import settings
 
 class SheetInterface:
     def __init__(self, sheet_name):
+        ''' Converts column number into letter notation '''
         self.NUM_TO_CHAR = [''] + [chr(i) for i in range(ord('A'), ord('Z') + 1)] + \
             ['A' + chr(i) for i in range(ord('A'), ord('Z') + 1)]
 
@@ -20,15 +21,20 @@ class SheetInterface:
         self.batch = []
     
     def get_range_string(self, start_col, start_row, width, height):
+        ''' Converts 2D range of cells into letter notation '''
         return '%s%d:%s%d' % (
             self.NUM_TO_CHAR[start_col], start_row,
             self.NUM_TO_CHAR[start_col + width - 1], start_row + height
         )
     
-    # formats order books from sheet1 as a list of pairs of two lists (both sides of one product)
-    # each side stores a list of tuples (name: str, price: str)
     def get_order_books_raw(self):
-        # 0-indexed as it needs to access self.sheet1_values
+        '''
+        gets state of order book from spreadsheet
+        return: list of products, where each product is described by a list of two lists
+                each inner list contains tuples of each order (name, price)
+                all entries are str
+        '''
+        ''' 0-indexed as it needs to access self.sheet1_values '''
         table_row = settings.ORDER_BOOK_ROW - 1
         table_col = settings.ORDER_BOOK_COL - 1
 
@@ -52,11 +58,13 @@ class SheetInterface:
         
         return raw_data
     
-    # formats accounts table from sheet 1 as a list of lists
-    # each inner list is a column from the table [account_id, name, inventory...]
-    # every entry is a str
     def get_accounts_raw(self):
-        # 0-indexed
+        '''
+        gets state of accounts from spreadsheet
+        return: list of accounts, where each account is a list of [account_id, name, inventory...]
+                all entries are str
+        '''
+        ''' 0-indexed '''
         table_row = settings.ACCOUNT_ROW - 1
         table_col = settings.ACCOUNT_COL
 
@@ -77,6 +85,10 @@ class SheetInterface:
         return raw_data
     
     def update_order_book(self, product, side, order_book_list):
+        '''
+        takes corresponding order book of a product on a particular side in list form
+        appends a request body to self.batch, waiting to be updated in a batch
+        '''
         cur_row = settings.ORDER_BOOK_ROW + 5*product.product_order + 2*int(side)
         cur_col = settings.ORDER_BOOK_COL + 2
 
@@ -93,6 +105,10 @@ class SheetInterface:
         })
     
     def update_account(self, account):
+        '''
+        takes Account object
+        appends a request body to self.batch
+        '''
         cur_row = settings.ACCOUNT_ROW + 2
         cur_col = settings.ACCOUNT_COL + 1 + account.account_order
 
@@ -121,5 +137,8 @@ class SheetInterface:
         self.update_account(account)
     
     def batch_update(self):
+        '''
+        updates all requests in self.batch to the spreadsheet
+        '''
         self.main_sheet.batch_update(self.batch)
         self.batch = []

@@ -13,8 +13,8 @@ accounts = [
     Account(3, 'dave', 3, settings.PRODUCTS),
 ]
 
-controller = Controller('Local Testing', settings.PRODUCTS)
-controller.import_accounts(accounts)
+controller = Controller('Local Testing', 'local.log', settings.PRODUCTS)
+controller.import_accounts(accounts, True)
 
 
 

@@ -11,6 +11,10 @@ class Account:
         self.inventory = {product: 0 for product in self.products}
     
     def print_account(self):
+        '''
+        for debugging purposes
+        prints account info and its positions in each product
+        '''
         print(self.account_id, self.name, self.balance, self.account_order)
         print(list(map(lambda x: (x[0].product_id, int(x[1])), self.inventory.items())))
 

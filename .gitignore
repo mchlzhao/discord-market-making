@@ -1,5 +1,5 @@
 TODO.txt
 .env
 credentials.json
-settings.py
 __pycache__
+*.log

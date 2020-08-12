@@ -9,7 +9,7 @@ class Engine:
         self.products = products
 
         self.order_books = {product: OrderBook(product) for product in products}
-        self.orders_by_account = {} # key = (account, product, side)
+        self.orders_by_account = {} # key = (account, product, side), value = price
 
         self.transaction_history = []
     
@@ -18,10 +18,18 @@ class Engine:
             return -1
         return self.orders_by_account[(account, product, side)]
 
-    # now it is assumed that the bid placed is a valid bid
-    # position limit and in cross with self are checked before calling process_bid()
-    # process_bid() will do automatic rounding to the best opposing bid
     def process_bid(self, account, product, side, price):
+        '''
+        process a bid
+        assumes the bid is valid, as all error checks are performed by controller
+
+        if a trade is made:
+            opposite side will be removed from the engine
+            returns Transaction object
+        else:
+            bid is entered into the order book
+            returns None
+        '''
         order_book = self.order_books[product]
 
         existing = self.account_has_existing_order(account, product, side)
@@ -30,9 +38,7 @@ class Engine:
 
         if side == Side.BUY:
             lowest_sell = order_book.get_best_sell()
-
             if lowest_sell == None or price < lowest_sell[1]:
-                # no trade is made
                 order_book.add_order(account, side, price)
                 self.orders_by_account[(account, product, side)] = price
 
@@ -43,9 +49,7 @@ class Engine:
 
         else:
             highest_buy = order_book.get_best_buy()
-
             if highest_buy == None or price > highest_buy[1]:
-                # no trade is made
                 order_book.add_order(account, side, price)
                 self.orders_by_account[(account, product, side)] = price
 
@@ -58,14 +62,20 @@ class Engine:
 
         return transaction
     
-    # return -1: no existing order to cancel
-    # assumed the order does exist
     def process_cancel(self, account, product, side):
+        '''
+        process a cancellation
+        assumes the operation is valid as error checks are performed by controller
+        '''
         order_book = self.order_books[product]
         order_book.remove_order(account, side, self.orders_by_account[(account, product, side)])
         self.orders_by_account.pop((account, product, side))
     
     def print_order_books(self):
+        '''
+        for debugging purposes
+        prints state of the order books for all products
+        '''
         for product, book in self.order_books.items():
             print(product.description)
             print(list(map(lambda x: (x[0].name, x[1]), book.get_book_in_list(Side.BUY))))

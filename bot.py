@@ -43,7 +43,7 @@ bot = commands.Bot(command_prefix='$$')
 @bot.event
 async def on_ready():
     global controller
-    controller = Controller('F1 Market', settings.PRODUCTS)
+    controller = Controller('F1 Market', 'app.log', settings.PRODUCTS)
     controller.init_from_sheet()
     print_books()
     print_accounts()
@@ -227,7 +227,7 @@ async def adduser_command(ctx, *args):
         return
 
     user = ctx.guild.get_member(id)
-    result = controller.add_account(id, get_name(user))
+    result = controller.add_account(id, get_name(user), True)
 
     if result == -1:
         print('too many users already in the game')
