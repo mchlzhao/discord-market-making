@@ -43,8 +43,7 @@ bot = commands.Bot(command_prefix='$$')
 @bot.event
 async def on_ready():
     global controller
-    controller = Controller('F1 Market', 'app.log', settings.PRODUCTS)
-    controller.init_from_sheet()
+    controller = Controller('F1 Market', 'app.log', settings.PRODUCTS, False)
     print_books()
     print_accounts()
     print('Bot Open')
@@ -279,6 +278,10 @@ async def close(ctx):
     if str(ctx.author) not in ADMINS:
         print(str(ctx.author), 'tried to quit')
         return
+
+    global controller
+    del controller
+
     await ctx.message.add_reaction(SUCCESS_EMOJI)
     await bot.close()
     print("Bot Closed")

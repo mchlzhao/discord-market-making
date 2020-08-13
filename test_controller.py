@@ -10,7 +10,7 @@ do_write = True
 
 class TestController(unittest.TestCase):
     def setUp(self):
-        self.controller = Controller('Local Testing', 'local.log', settings.PRODUCTS)
+        self.controller = Controller('Local Testing', 'app_local.log', settings.PRODUCTS, True)
         for id, name in zip(range(0, 4), 'abcd'):
             self.controller.add_account(id, name, do_write)
         self.accounts = self.controller.accounts

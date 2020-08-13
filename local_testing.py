@@ -13,7 +13,7 @@ accounts = [
     Account(3, 'dave', 3, settings.PRODUCTS),
 ]
 
-controller = Controller('Local Testing', 'local.log', settings.PRODUCTS)
+controller = Controller('Local Testing', 'app_local.log', settings.PRODUCTS, True)
 controller.import_accounts(accounts, True)
 
 

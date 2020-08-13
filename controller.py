@@ -8,7 +8,7 @@ from util import Side
 import settings
 
 class Controller:
-    def __init__(self, sheet_name, log_file_name, products):
+    def __init__(self, sheet_name, log_file_name, products, new_game):
         self.sheet_interface = SheetInterface(sheet_name)
 
         self.accounts = []
@@ -27,19 +27,32 @@ class Controller:
             level = logging.INFO,
             format = '%(asctime)s:%(levelname)s:%(message)s'
         )
-        logging.info('Controller initialised')
+
+        logging.info('Controller initialising')
+
+        if new_game:
+            pass
+        else:
+            self.init_from_sheet()
+            logging.info('Initialised from sheet:')
+            for account in self.accounts:
+                logging.info('%d %s %d: %d' % (account.account_id, account.name, account.account_order, account.balance))
+                logging.info(' '.join(map(lambda x: str(x[1]), account.inventory.items())))
+
+        logging.info('Controller initialised\n')
     
     def __del__(self):
-        logging.info('Controller stopped')
+        logging.info('Controller stopping:')
+        for account in self.accounts:
+            logging.info('%d %s %d: %d' % (account.account_id, account.name, account.account_order, account.balance))
+            logging.info(' '.join(map(lambda x: str(x[1]), account.inventory.items())))
+        logging.info('Controller stopped\n')
     
     def init_from_sheet(self):
         '''
         loads parsed accounts and orders into the controller, restoring the state
         '''
-        self.accounts = self.get_accounts_from_raw(self.sheet_interface.accounts_raw)
-        for account in self.accounts:
-            self.name_to_account[account.name] = account
-            self.account_id_to_account[account.account_id] = account
+        self.import_accounts(self.get_accounts_from_raw(self.sheet_interface.accounts_raw), False)
 
         init_orders = self.get_orders_from_raw(self.sheet_interface.order_books_raw)
         for product, side, name, price in init_orders:
@@ -160,7 +173,7 @@ class Controller:
 
         result = self.engine.process_bid(account, product, side, price)
 
-        logging.info('bid %s %s %s %d', account.name, product.description, side.name, price)
+        logging.info('%s %s %s %d', side.name, account.name, product.description, price)
 
         if do_write:
             self.sheet_interface.update_order_book(self.engine.order_books[product])
@@ -169,7 +182,7 @@ class Controller:
             result.buyer_account.process_transaction(product, Side.BUY, result.price)
             result.seller_account.process_transaction(product, Side.SELL, result.price)
 
-            logging.info('trade %s->%s %s %d', result.seller_account.name, result.buyer_account.name, product.description, result.price)
+            logging.info('TRADE %s->%s %s %d', result.seller_account.name, result.buyer_account.name, product.description, result.price)
 
             if do_write:
                 self.sheet_interface.update_account(result.buyer_account)
@@ -204,7 +217,7 @@ class Controller:
         
         self.engine.process_cancel(account, product, side)
 
-        logging.info('cancel %s %s %s', account.name, product.description, side.name)
+        logging.info('CANCEL %s %s %s', side.name, account.name, product.description)
 
         if do_write:
             self.sheet_interface.update_order_book(self.engine.order_books[product])
@@ -225,7 +238,7 @@ class Controller:
         except KeyError:
             return -1
 
-        logging.info('mark %s %s', product.description, did_occur)
+        logging.info('MARK %s %s', product.description, did_occur)
 
         if did_occur == False:
             return 0
