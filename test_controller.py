@@ -16,7 +16,7 @@ class TestController(unittest.TestCase):
         self.accounts = self.controller.accounts
 
     def tearDown(self):
-        pass
+        del self.controller
 
     def test_all(self):
         order_book0 = self.controller.engine.order_books[settings.PRODUCTS[0]]
