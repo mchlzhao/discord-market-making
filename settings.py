@@ -29,6 +29,9 @@ PRODUCTS = [
     Product(6, 5, 'E6'),
     Product(7, 6, 'E7'),
     Product(8, 7, 'E8'),
+    Product(9, 8, 'E9'),
+    Product(10, 9, 'E10'),
+    Product(11, 10, 'E11'),
 ]
 
 

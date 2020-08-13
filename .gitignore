@@ -3,3 +3,4 @@ TODO.txt
 credentials.json
 __pycache__
 *.log
+*.swp

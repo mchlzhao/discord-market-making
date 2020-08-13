@@ -119,7 +119,7 @@ class SheetInterface:
         cur_row = settings.ACCOUNT_ROW
         cur_col = settings.ACCOUNT_COL + 1 + account.account_order
 
-        values = [[account.account_id], [account.name], [account.balance]] + [None] * len(account.products)
+        values = [[str(account.account_id)], [account.name], [account.balance]] + [None] * len(account.products)
         for product in account.products:
             values[product.product_order + 3] = [account.inventory[product]]
 
