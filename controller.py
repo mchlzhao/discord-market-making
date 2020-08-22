@@ -291,3 +291,20 @@ class Controller:
         self.sheet_interface.batch_update()
 
         return payouts
+    
+    def clear_orders(self):
+        self.engine.clear_orders()
+
+        for product in self.products:
+            self.sheet_interface.update_order_book(self.engine.order_books[product])
+        
+        self.sheet_interface.batch_update()
+    
+    def clear_positions(self):
+        for account in self.accounts:
+            for product in account.products:
+                account.add_inventory(product, -account.inventory[product])
+            
+            self.sheet_interface.update_account(account)
+        
+        self.sheet_interface.batch_update()

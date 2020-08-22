@@ -102,3 +102,11 @@ class TestController(unittest.TestCase):
         ordered_accounts = self.controller.get_accounts_most_pos()
         self.assertTrue(self.accounts[0].total_positions == 6)
         self.assertTrue(ordered_accounts[0] == self.accounts[0] or ordered_accounts[1] == self.accounts[0])
+
+        # clearing orders
+        self.controller.clear_orders()
+        self.assertTrue(len(order_book0.buy_orders[50]) == 0)
+
+        # clearing positions
+        self.controller.clear_positions()
+        self.assertTrue(self.accounts[0].total_positions == 0)

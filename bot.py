@@ -309,6 +309,36 @@ async def paybonus_command(ctx, *args):
 
 
 
+@bot.command(name='clearorders')
+async def clearorders_command(ctx, *args):
+    async def failure(ctx):
+        await ctx.message.add_reaction(FAILURE_EMOJI)
+
+    if str(ctx.author) not in ADMINS:
+        print(str(ctx.author), 'tried to access $$bonus')
+        await failure(ctx)
+        return
+    
+    controller.clear_orders()
+    await ctx.message.add_reaction(SUCCESS_EMOJI)
+
+
+
+@bot.command(name='clearpositions')
+async def clearpositions_command(ctx, *args):
+    async def failure(ctx):
+        await ctx.message.add_reaction(FAILURE_EMOJI)
+
+    if str(ctx.author) not in ADMINS:
+        print(str(ctx.author), 'tried to access $$bonus')
+        await failure(ctx)
+        return
+    
+    controller.clear_positions()
+    await ctx.message.add_reaction(SUCCESS_EMOJI)
+
+
+
 @bot.command(aliases=["quit"])
 @commands.has_permissions(administrator=True)
 async def close(ctx):
