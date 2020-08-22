@@ -97,3 +97,8 @@ class TestController(unittest.TestCase):
         self.controller.mark_occurred(2, False, do_write)
         self.assertTrue(self.accounts[0].balance == 50)
         self.assertTrue(self.accounts[1].balance == -50)
+
+        # getting bonus order
+        ordered_accounts = self.controller.get_accounts_most_pos()
+        self.assertTrue(self.accounts[0].total_positions == 6)
+        self.assertTrue(ordered_accounts[0] == self.accounts[0] or ordered_accounts[1] == self.accounts[0])

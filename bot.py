@@ -53,7 +53,8 @@ async def on_ready():
 @bot.command(name='test')
 async def test_command(ctx):
     await ctx.message.add_reaction(SUCCESS_EMOJI)
-    await ctx.send(get_name(ctx.author))
+    id = ctx.author.id
+    await ctx.send('<@%d>' % id)
 
 
 
@@ -113,10 +114,18 @@ async def buy_command(ctx, *args):
     await ctx.message.add_reaction(SUCCESS_EMOJI)
 
     if result[1] != None:
-        message = 'TRADE: %s sold to %s Event %d at $%d' % (result[1].seller_account.name,
-            result[1].buyer_account.name, result[1].product.product_id, result[1].price)
-        await ctx.send(message)
-        print(message)
+        message = 'TRADE: {{id1}} sold to {{id2}} Event {product_id} at ${price}'.format(
+            product_id = result[1].product.product_id,
+            price = result[1].price
+        )
+        await ctx.send(message.format(
+            id1 = '<@%d>' % result[1].seller_account.account_id,
+            id2 = '<@%d>' % result[1].buyer_account.account_id
+        ))
+        print(message.format(
+            id1 = result[1].seller_account.name,
+            id2 = result[1].buyer_account.name
+        ))
 
 
 
@@ -164,10 +173,18 @@ async def sell_command(ctx, *args):
     await ctx.message.add_reaction(SUCCESS_EMOJI)
 
     if result[1] != None:
-        message = 'TRADE: %s sold to %s Event %d at $%d' % (result[1].seller_account.name,
-            result[1].buyer_account.name, result[1].product.product_id, result[1].price)
-        await ctx.send(message)
-        print(message)
+        message = 'TRADE: {{id1}} sold to {{id2}} Event {product_id} at ${price}'.format(
+            product_id = result[1].product.product_id,
+            price = result[1].price
+        )
+        await ctx.send(message.format(
+            id1 = '<@%d>' % result[1].seller_account.account_id,
+            id2 = '<@%d>' % result[1].buyer_account.account_id
+        ))
+        print(message.format(
+            id1 = result[1].seller_account.name,
+            id2 = result[1].buyer_account.name
+        ))
 
 
 
@@ -241,12 +258,12 @@ async def adduser_command(ctx, *args):
 
 
 @bot.command(name='mark')
-async def mark(ctx, *args):
+async def mark_command(ctx, *args):
     async def failure(ctx):
         await ctx.message.add_reaction(FAILURE_EMOJI)
 
     if str(ctx.author) not in ADMINS:
-        print(str(ctx.author), 'tried to access $$occurred')
+        print(str(ctx.author), 'tried to access $$mark')
         await failure(ctx)
         return
     if len(args) < 2 or args[1] not in ['y', 'n']:
@@ -269,6 +286,26 @@ async def mark(ctx, *args):
     await ctx.message.add_reaction(SUCCESS_EMOJI)
     print('marked ' + str(product_id) + (' occurred' if did_occur else ' did not occur'))
     print_accounts()
+
+
+
+@bot.command(name='paybonus')
+async def paybonus_command(ctx, *args):
+    async def failure(ctx):
+        await ctx.message.add_reaction(FAILURE_EMOJI)
+
+    if str(ctx.author) not in ADMINS:
+        print(str(ctx.author), 'tried to access $$bonus')
+        await failure(ctx)
+        return
+
+    payouts = controller.pay_bonus()
+    messages = []
+    for account, bonus in payouts:
+        messages.append('<@%d> has %d positions, is paid %d' % (account.account_id, account.total_positions, bonus))
+
+    await ctx.message.add_reaction(SUCCESS_EMOJI)
+    await ctx.send('\n'.join(messages))
 
 
 

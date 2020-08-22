@@ -1,4 +1,5 @@
 import logging
+import random
 
 from account import Account
 from engine import Engine
@@ -71,7 +72,7 @@ class Controller:
             assert(len(account_raw) == 3+len(self.products))
 
             for product in self.products:
-                cur_account.inventory[product] = int(account_raw[3 + product.product_order])
+                cur_account.add_inventory(product, int(account_raw[3 + product.product_order]))
             
             accounts_list.append(cur_account)
         
@@ -252,3 +253,41 @@ class Controller:
             self.sheet_interface.batch_update()
         
         return 0
+    
+    def get_accounts_most_pos(self):
+        '''
+        returns the list of accounts, sorted in descending order of total positions
+        used for paying out bonuses for taking risk
+        ties are broken by random
+        '''
+        num_positions = {}
+        for account in self.accounts:
+            num_positions.setdefault(account.total_positions, []).append(account)
+        
+        ordered_accounts = []
+        for _, accounts_list in sorted(num_positions.items()):
+            temp = list(accounts_list)
+            random.shuffle(temp)
+            ordered_accounts.extend(temp)
+        
+        return list(reversed(ordered_accounts))
+    
+    def pay_bonus(self):
+        '''
+        pays bonuses to players based on order from self.get_accounts_most_pos()
+        returns list of pairs of accounts and their received payouts
+        '''
+        ordered_accounts = self.get_accounts_most_pos()
+        bonuses = [30, 20, 10, -10, -20, -30]
+
+        payouts = []
+        for account, bonus in zip(ordered_accounts, bonuses):
+            payouts.append([account, bonus])
+            account.balance += bonus
+
+            self.sheet_interface.update_account(account)
+            print('%s has %d positions, will be paid %d' % (account.name, account.total_positions, bonus))
+        
+        self.sheet_interface.batch_update()
+
+        return payouts
