@@ -194,7 +194,6 @@ class Controller:
 
         return (0, result)
     
-    # error codes: -1 = bid does not exist    -2 = product does not exist
     def process_cancel(self, account_id, product_order, side, do_write):
         '''
         cancels a bid
