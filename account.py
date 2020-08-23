@@ -1,8 +1,8 @@
 from util import Side
 
 class Account:
-    def __init__(self, account_id, name, account_order, products):
-        self.account_id = account_id
+    def __init__(self, id, name, account_order, products):
+        self.id = id
         self.name = name
         self.account_order = account_order
         self.products = products
@@ -16,7 +16,7 @@ class Account:
         for debugging purposes
         prints account info and its positions in each product
         '''
-        print(self.account_id, self.name, self.balance, self.account_order)
+        print(self.id, self.name, self.balance, self.account_order)
         print(list(map(lambda x: (x[0].product_id, int(x[1])), self.inventory.items())))
     
     def add_inventory(self, product, change):

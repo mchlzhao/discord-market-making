@@ -119,8 +119,8 @@ async def buy_command(ctx, *args):
             price = result[1].price
         )
         await ctx.send(message.format(
-            id1 = '<@%d>' % result[1].seller_account.account_id,
-            id2 = '<@%d>' % result[1].buyer_account.account_id
+            id1 = '<@%d>' % result[1].seller_account.id,
+            id2 = '<@%d>' % result[1].buyer_account.id
         ))
         print(message.format(
             id1 = result[1].seller_account.name,
@@ -178,8 +178,8 @@ async def sell_command(ctx, *args):
             price = result[1].price
         )
         await ctx.send(message.format(
-            id1 = '<@%d>' % result[1].seller_account.account_id,
-            id2 = '<@%d>' % result[1].buyer_account.account_id
+            id1 = '<@%d>' % result[1].seller_account.id,
+            id2 = '<@%d>' % result[1].buyer_account.id
         ))
         print(message.format(
             id1 = result[1].seller_account.name,
@@ -302,7 +302,7 @@ async def paybonus_command(ctx, *args):
     payouts = controller.pay_bonus()
     messages = []
     for account, bonus in payouts:
-        messages.append('<@%d> has %d positions, is paid %d' % (account.account_id, account.total_positions, bonus))
+        messages.append('<@%d> has %d positions, is paid %d' % (account.id, account.total_positions, bonus))
 
     await ctx.message.add_reaction(SUCCESS_EMOJI)
     await ctx.send('\n'.join(messages))

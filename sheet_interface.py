@@ -64,7 +64,7 @@ class SheetInterface:
     def get_accounts_raw(self):
         '''
         gets state of accounts from spreadsheet
-        return: list of accounts, where each account is a list of [account_id, name, inventory...]
+        return: list of accounts, where each account is a list of [id, name, inventory...]
                 all entries are str
         '''
         ''' 0-indexed '''
@@ -119,7 +119,7 @@ class SheetInterface:
         cur_row = settings.ACCOUNT_ROW
         cur_col = settings.ACCOUNT_COL + 1 + account.account_order
 
-        values = [[str(account.account_id)], [account.name], [account.balance]] + [None] * len(account.products)
+        values = [[str(account.id)], [account.name], [account.balance]] + [None] * len(account.products)
         for product in account.products:
             values[product.product_order + 3] = [account.inventory[product]]
 

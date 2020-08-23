@@ -1,6 +1,5 @@
 import unittest
 
-from account import Account
 from controller import Controller
 from util import Side
 

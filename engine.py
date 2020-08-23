@@ -1,8 +1,6 @@
 from util import Side, Transaction
 from order_book import OrderBook
 
-import settings
-
 class Engine:
     def __init__(self, accounts, products):
         self.accounts = accounts
@@ -86,6 +84,9 @@ class Engine:
             print(key[0].name, key[1].product_id, int(key[2]), value)
     
     def clear_orders(self):
+        '''
+        removes all orders from all order books
+        '''
         orders_list = list(self.orders_dict.keys())
         for account, product, side in orders_list:
             self.process_cancel(account, product, side)

@@ -6,6 +6,7 @@ from engine import Engine
 from sheet_interface import SheetInterface
 from util import Side
 
+import input_parser
 import settings
 
 class Controller:
@@ -14,12 +15,9 @@ class Controller:
 
         self.accounts = []
         self.name_to_account = {}
-        self.account_id_to_account = {}
+        self.id_to_account = {}
 
         self.products = products
-        self.product_order_to_product = {}
-        for product in products:
-            self.product_order_to_product[product.product_order] = product
 
         self.engine = Engine(self.accounts, self.products)
 
@@ -37,7 +35,7 @@ class Controller:
             self.init_from_sheet()
             logging.info('Initialised from sheet:')
             for account in self.accounts:
-                logging.info('%d %s %d: %d' % (account.account_id, account.name, account.account_order, account.balance))
+                logging.info('%d %s %d: %d' % (account.id, account.name, account.account_order, account.balance))
                 logging.info(' '.join(map(lambda x: str(x[1]), account.inventory.items())))
 
         logging.info('Controller initialised\n')
@@ -45,7 +43,7 @@ class Controller:
     def __del__(self):
         logging.info('Controller stopping:')
         for account in self.accounts:
-            logging.info('%d %s %d: %d' % (account.account_id, account.name, account.account_order, account.balance))
+            logging.info('%d %s %d: %d' % (account.id, account.name, account.account_order, account.balance))
             logging.info(' '.join(map(lambda x: str(x[1]), account.inventory.items())))
         logging.info('Controller stopped\n')
     
@@ -53,73 +51,33 @@ class Controller:
         '''
         loads parsed accounts and orders into the controller, restoring the state
         '''
-        self.import_accounts(self.get_accounts_from_raw(self.sheet_interface.accounts_raw), False)
+        self.import_accounts(input_parser.get_accounts_from_raw(self.sheet_interface.accounts_raw, self.products), False)
 
-        init_orders = self.get_orders_from_raw(self.sheet_interface.order_books_raw)
+        init_orders = input_parser.get_orders_from_raw(self.sheet_interface.order_books_raw, self.products)
         for product, side, name, price in init_orders:
-            self.process_bid(self.name_to_account[name].account_id, product.product_order+1, side, price, False)
-    
-    def get_accounts_from_raw(self, accounts_raw):
-        '''
-        parses raw account data
-        return: list of Account
-        '''
-        accounts_list = []
-        for account_order, account_raw in enumerate(accounts_raw):
-            cur_account = Account(int(account_raw[0]), account_raw[1], account_order, self.products)
-            cur_account.balance = int(account_raw[2])
-
-            assert(len(account_raw) == 3+len(self.products))
-
-            for product in self.products:
-                cur_account.add_inventory(product, int(account_raw[3 + product.product_order]))
-            
-            accounts_list.append(cur_account)
-        
-        return accounts_list
-
-    def get_orders_from_raw(self, order_books_raw):
-        '''
-        parses raw order book data
-        return: list of (Product, Side, name, price)
-        '''
-        init_orders_list = []
-
-        if len(order_books_raw) != len(self.products):
-            print('NUMBER OF PRODUCTS DON\'T MATCH')
-            print('expected %d    got %d' % (len(self.products), len(order_books_raw)))
-            assert(False)
-
-        for order, product_raw in enumerate(order_books_raw):
-            for side, side_raw in enumerate(product_raw):
-                for name, price in side_raw:
-                    init_orders_list.append((self.product_order_to_product[order], Side(side), name, int(price)))
-
-        return init_orders_list
+            self.process_bid(self.name_to_account[name].id, product.product_order+1, side, price, False)
     
     def add_account(self, account_id, name, do_write):
         '''
         wrapper for self.import_accounts()
         creates new account with account_id and name
-        return:
-            -1 if USER_LIMIT is breached
-            0 otherwise
         '''
-        if len(self.accounts) >= settings.USER_LIMIT:
-            return -1
-
-        self.import_accounts([Account(account_id, name, len(self.accounts), self.products)], do_write)
-
-        return 0
+        return self.import_accounts([Account(account_id, name, len(self.accounts), self.products)], do_write)
     
     def import_accounts(self, accounts, do_write):
         '''
         imports existing Account objects into the controller
         pushes new Account to the spreadsheet
+        return:
+            -1 if USER_LIMIT is breached
+            0 otherwise
         '''
+        if len(self.accounts) + len(accounts) > settings.USER_LIMIT:
+            return -1
+
         for account in accounts:
             self.name_to_account[account.name] = account
-            self.account_id_to_account[account.account_id] = account
+            self.id_to_account[account.id] = account
             self.accounts.append(account)
 
             if do_write:
@@ -127,9 +85,11 @@ class Controller:
 
         if do_write:
             self.sheet_interface.batch_update()
+        
+        return 0
     
     def has_user(self, account_id):
-        return account_id in self.account_id_to_account
+        return account_id in self.id_to_account
     
     def process_bid(self, account_id, product_order, side, price, do_write):
         '''
@@ -146,12 +106,14 @@ class Controller:
             returns Transaction if a trade occurs, None otherwise
         '''
         try:
-            account = self.account_id_to_account[account_id]
+            account = self.id_to_account[account_id]
         except KeyError:
             return (-5, 0)
         try:
-            product = self.product_order_to_product[product_order-1]
-        except KeyError:
+            if product_order < 1:
+                raise IndexError
+            product = self.products[product_order-1]
+        except (IndexError, TypeError):
             return (-4, 0)
 
         if price < 0 or price > 100:
@@ -204,12 +166,14 @@ class Controller:
             0 otherwise
         '''
         try:
-            account = self.account_id_to_account[account_id]
+            account = self.id_to_account[account_id]
         except KeyError:
             return -3
         try:
-            product = self.product_order_to_product[product_order-1]
-        except KeyError:
+            if product_order < 1:
+                raise IndexError
+            product = self.products[product_order-1]
+        except (IndexError, TypeError):
             return -2
 
         if self.engine.account_has_existing_order(account, product, side) == -1:
@@ -234,8 +198,10 @@ class Controller:
             0 otherwise
         '''
         try:
-            product = self.product_order_to_product[product_order-1]
-        except KeyError:
+            if product_order < 1:
+                raise IndexError
+            product = self.products[product_order-1]
+        except (IndexError, TypeError):
             return -1
 
         logging.info('MARK %s %s', product.description, did_occur)
@@ -285,13 +251,18 @@ class Controller:
             account.balance += bonus
 
             self.sheet_interface.update_account(account)
-            print('%s has %d positions, will be paid %d' % (account.name, account.total_positions, bonus))
+            logging.info('%s has %d positions, will be paid %d', account.name, account.total_positions, bonus)
         
         self.sheet_interface.batch_update()
 
         return payouts
     
     def clear_orders(self):
+        '''
+        clears all orders from all order books
+        '''
+        logging.info('clearing all orders')
+
         self.engine.clear_orders()
 
         for product in self.products:
@@ -300,6 +271,11 @@ class Controller:
         self.sheet_interface.batch_update()
     
     def clear_positions(self):
+        '''
+        clears all positions held by accounts
+        '''
+        logging.info('clearing all positions')
+
         for account in self.accounts:
             for product in account.products:
                 account.add_inventory(product, -account.inventory[product])
