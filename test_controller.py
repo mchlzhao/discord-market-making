@@ -1,15 +1,26 @@
 import unittest
 
 from controller import Controller
-from util import Side
+from util import Product, Side
 
 import settings
+
+products = [
+    Product(1, 0, 'E1'),
+    Product(2, 1, 'E2'),
+    Product(3, 2, 'E3'),
+    Product(4, 3, 'E4'),
+    Product(5, 4, 'E5'),
+    Product(6, 5, 'E6'),
+    Product(7, 6, 'E7'),
+    Product(8, 7, 'E8'),
+]
 
 do_write = True
 
 class TestController(unittest.TestCase):
     def setUp(self):
-        self.controller = Controller('Local Testing', 'app_local.log', settings.PRODUCTS, True)
+        self.controller = Controller('Local Testing', 'app_local.log', products, True)
         for id, name in zip(range(0, 4), 'abcd'):
             self.controller.add_account(id, name, do_write)
         self.accounts = self.controller.accounts
@@ -18,7 +29,7 @@ class TestController(unittest.TestCase):
         del self.controller
 
     def test_all(self):
-        order_book0 = self.controller.engine.order_books[settings.PRODUCTS[0]]
+        order_book0 = self.controller.engine.order_books[products[0]]
 
         # posting buy and sell
         result = self.controller.process_bid(0, 1, Side.BUY, 50, do_write)
@@ -65,17 +76,17 @@ class TestController(unittest.TestCase):
         self.assertEqual(result[0], 0)
         self.assertIsNotNone(result[1])
         self.assertEqual(self.accounts[0].balance, 100)
-        self.assertEqual(self.accounts[0].inventory[settings.PRODUCTS[0]], -1)
+        self.assertEqual(self.accounts[0].inventory[products[0]], -1)
         self.assertEqual(self.accounts[1].balance, -100)
-        self.assertEqual(self.accounts[1].inventory[settings.PRODUCTS[0]], 1)
+        self.assertEqual(self.accounts[1].inventory[products[0]], 1)
 
         # reaching position limit
         for _ in range(1, settings.POSITION_LIMIT):
             self.controller.process_bid(0, 1, Side.SELL, 100, do_write)
             self.controller.process_bid(1, 1, Side.BUY, 100, do_write)
         
-        self.assertEqual(self.accounts[0].inventory[settings.PRODUCTS[0]], -settings.POSITION_LIMIT)
-        self.assertEqual(self.accounts[1].inventory[settings.PRODUCTS[0]], settings.POSITION_LIMIT)
+        self.assertEqual(self.accounts[0].inventory[products[0]], -settings.POSITION_LIMIT)
+        self.assertEqual(self.accounts[1].inventory[products[0]], settings.POSITION_LIMIT)
 
         result = self.controller.process_bid(0, 1, Side.SELL, 100, do_write)
         self.assertEqual(result[0], -1)

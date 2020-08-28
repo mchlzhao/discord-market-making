@@ -2,18 +2,27 @@ import sys
 
 from account import Account
 from controller import Controller
-from util import Side
+from util import Product, Side
 
-import settings
-
-accounts = [
-    Account(0, 'alice', 0, settings.PRODUCTS),
-    Account(1, 'bob', 1, settings.PRODUCTS),
-    Account(2, 'charlie', 2, settings.PRODUCTS),
-    Account(3, 'dave', 3, settings.PRODUCTS),
+products = [
+    Product(1, 0, 'E1'),
+    Product(2, 1, 'E2'),
+    Product(3, 2, 'E3'),
+    Product(4, 3, 'E4'),
+    Product(5, 4, 'E5'),
+    Product(6, 5, 'E6'),
+    Product(7, 6, 'E7'),
+    Product(8, 7, 'E8'),
 ]
 
-controller = Controller('Local Testing', 'app_local.log', settings.PRODUCTS, True)
+accounts = [
+    Account(0, 'alice', 0, products),
+    Account(1, 'bob', 1, products),
+    Account(2, 'charlie', 2, products),
+    Account(3, 'dave', 3, products),
+]
+
+controller = Controller('Local Testing', 'app_local.log', products, True)
 controller.import_accounts(accounts, True)
 
 
@@ -29,7 +38,7 @@ for line in sys.stdin:
         account_id = int(command[1])
         product_order = int(command[2])
         price = int(command[3])
-        assert(product_order >= 1 and product_order <= len(settings.PRODUCTS))
+        assert(product_order >= 1 and product_order <= len(products))
 
         result = controller.process_bid(account_id, product_order, Side.BUY, price, True)
         print('return: %d %s' % (result[0], str(result[1]) if result[1] is not None else '-'))
@@ -37,7 +46,7 @@ for line in sys.stdin:
         account_id = int(command[1])
         product_order = int(command[2])
         price = int(command[3])
-        assert(product_order >= 1 and product_order <= len(settings.PRODUCTS))
+        assert(product_order >= 1 and product_order <= len(products))
 
         result = controller.process_bid(account_id, product_order, Side.SELL, price, True)
         print('return: %d %s' % (result[0], str(result[1]) if result[1] is not None else '-'))
@@ -45,7 +54,7 @@ for line in sys.stdin:
         side = command[1][0]
         account_id = int(command[2])
         product_order = int(command[3])
-        assert(product_order >= 1 and product_order <= len(settings.PRODUCTS))
+        assert(product_order >= 1 and product_order <= len(products))
 
         result = controller.process_cancel(account_id, product_order, Side.BUY if side == 'b' else Side.SELL, True)
         print("return: %d" % result)
@@ -54,7 +63,7 @@ for line in sys.stdin:
     elif command[0] == 'mark':
         product_order = int(command[1])
         did_occur = (command[2][0] == 'y')
-        assert(product_order >= 1 and product_order <= len(settings.PRODUCTS))
+        assert(product_order >= 1 and product_order <= len(products))
 
         controller.mark_occurred(product_order, did_occur, True)
         print('marked', str(did_occur))
