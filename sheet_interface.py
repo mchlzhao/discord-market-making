@@ -27,7 +27,7 @@ class SheetInterface:
         ''' Converts 2D range of cells into letter notation '''
         return '%s%d:%s%d' % (
             self.NUM_TO_CHAR[start_col], start_row,
-            self.NUM_TO_CHAR[start_col + width - 1], start_row + height
+            self.NUM_TO_CHAR[start_col + width - 1], start_row + height - 1
         )
     
     def get_order_books_raw(self):

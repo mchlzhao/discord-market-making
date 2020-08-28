@@ -2,8 +2,7 @@ from util import Side, Transaction
 from order_book import OrderBook
 
 class Engine:
-    def __init__(self, accounts, products):
-        self.accounts = accounts
+    def __init__(self, products):
         self.products = products
 
         self.order_books = {product: OrderBook(product) for product in products}
