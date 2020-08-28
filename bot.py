@@ -7,8 +7,6 @@ from discord.ext import commands
 from controller import Controller
 from util import Side
 
-import settings
-
 TOKEN = config('DISCORD_TOKEN')
 ADMINS = ['mzhao#1429']
 
@@ -43,7 +41,7 @@ bot = commands.Bot(command_prefix='$$')
 @bot.event
 async def on_ready():
     global controller
-    controller = Controller('F1 Market', 'app.log', settings.PRODUCTS, False)
+    controller = Controller('F1 Market', 'app.log')
     print_books()
     print_accounts()
     print('Bot Open')

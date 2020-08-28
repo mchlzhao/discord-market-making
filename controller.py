@@ -4,13 +4,13 @@ import random
 from account import Account
 from engine import Engine
 from sheet_interface import SheetInterface
-from util import Side
+from util import Product, Side
 
 import input_parser
 import settings
 
 class Controller:
-    def __init__(self, sheet_name, log_file_name, products, new_game):
+    def __init__(self, sheet_name, log_file_name, products = [], new_game = False):
         self.sheet_interface = SheetInterface(sheet_name)
 
         self.accounts = []
@@ -19,24 +19,34 @@ class Controller:
 
         self.products = products
 
-        self.engine = Engine(self.accounts, self.products)
+        if new_game:
+            pass
+        else:
+            '''
+            if loading existing game, the accounts and the products are both taken from the sheet
+            '''
+            for i in range(len(self.sheet_interface.order_books_raw)):
+                self.products.append(Product(i+1, i, 'E'+str(i)))
+
+            self.import_accounts(input_parser.get_accounts_from_raw(self.sheet_interface.accounts_raw, self.products), False)
+
+            logging.info('Initialised from sheet:')
+            for account in self.accounts:
+                logging.info('%d %s %d: %d' % (account.id, account.name, account.account_order, account.balance))
+                logging.info(' '.join(map(lambda x: str(x[1]), account.inventory.items())))
+
+        self.engine = Engine(self.products)
+
+        if not new_game:
+            init_orders = input_parser.get_orders_from_raw(self.sheet_interface.order_books_raw, self.products)
+            for product, side, name, price in init_orders:
+                self.process_bid(self.name_to_account[name].id, product.product_order+1, side, price, False)
 
         logging.basicConfig(
             filename = log_file_name, 
             level = logging.INFO,
             format = '%(asctime)s:%(levelname)s:%(message)s'
         )
-
-        logging.info('Controller initialising')
-
-        if new_game:
-            pass
-        else:
-            self.init_from_sheet()
-            logging.info('Initialised from sheet:')
-            for account in self.accounts:
-                logging.info('%d %s %d: %d' % (account.id, account.name, account.account_order, account.balance))
-                logging.info(' '.join(map(lambda x: str(x[1]), account.inventory.items())))
 
         logging.info('Controller initialised\n')
     
@@ -51,11 +61,7 @@ class Controller:
         '''
         loads parsed accounts and orders into the controller, restoring the state
         '''
-        self.import_accounts(input_parser.get_accounts_from_raw(self.sheet_interface.accounts_raw, self.products), False)
-
-        init_orders = input_parser.get_orders_from_raw(self.sheet_interface.order_books_raw, self.products)
-        for product, side, name, price in init_orders:
-            self.process_bid(self.name_to_account[name].id, product.product_order+1, side, price, False)
+        pass
     
     def add_account(self, account_id, name, do_write):
         '''
