@@ -19,6 +19,12 @@ class Controller:
 
         self.products = products
 
+        logging.basicConfig(
+            filename = log_file_name, 
+            level = logging.INFO,
+            format = '%(asctime)s:%(levelname)s:%(message)s'
+        )
+
         if new_game:
             pass
         else:
@@ -41,12 +47,6 @@ class Controller:
             init_orders = input_parser.get_orders_from_raw(self.sheet_interface.order_books_raw, self.products)
             for product, side, name, price in init_orders:
                 self.process_bid(self.name_to_account[name].id, product.product_order+1, side, price, False)
-
-        logging.basicConfig(
-            filename = log_file_name, 
-            level = logging.INFO,
-            format = '%(asctime)s:%(levelname)s:%(message)s'
-        )
 
         logging.info('Controller initialised\n')
     
