@@ -162,6 +162,18 @@ class Controller:
 
         return (0, result)
     
+    def process_buy(self, account_id, product_order, price, do_write):
+        '''
+        wrapper for process_bid buy
+        '''
+        return self.process_bid(account_id, product_order, Side.BUY, price, do_write)
+    
+    def process_sell(self, account_id, product_order, price, do_write):
+        '''
+        wrapper for process_bid sell
+        '''
+        return self.process_bid(account_id, product_order, Side.SELL, price, do_write)
+    
     def process_cancel(self, account_id, product_order, side, do_write):
         '''
         cancels a bid
@@ -194,6 +206,18 @@ class Controller:
             self.sheet_interface.batch_update()
 
         return 0
+    
+    def process_cancel_buy(self, account_id, product_order, do_write):
+        '''
+        wrapper for process_cancel buy
+        '''
+        return self.process_cancel(account_id, product_order, Side.BUY, do_write)
+
+    def process_cancel_sell(self, account_id, product_order, do_write):
+        '''
+        wrapper for process_cancel sell
+        '''
+        return self.process_cancel(account_id, product_order, Side.SELL, do_write)
     
     def mark_occurred(self, product_order, did_occur, do_write):
         '''
@@ -249,7 +273,7 @@ class Controller:
         returns list of pairs of accounts and their received payouts
         '''
         ordered_accounts = self.get_accounts_most_pos()
-        bonuses = [30, 20, 10, -10, -20, -30]
+        bonuses = [75, 60, 45, 30, 15, 0]
 
         payouts = []
         for account, bonus in zip(ordered_accounts, bonuses):

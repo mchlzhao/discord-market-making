@@ -1,8 +1,6 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-from util import Side
-
 import settings
 
 class SheetInterface:
@@ -97,11 +95,11 @@ class SheetInterface:
         cur_col = settings.ORDER_BOOK_COL + 2
 
         values = [[] for i in range(4)]
-        for side in Side:
+        for side in range(2):
             order_book_list = order_book.get_book_in_list(side)
             for account, price in order_book_list:
-                values[2 * int(side)].append(account.name)
-                values[2 * int(side) + 1].append(str(price))
+                values[2 * side].append(account.name)
+                values[2 * side + 1].append(str(price))
 
         for i in range(4):
             values[i] += [''] * (settings.USER_LIMIT - len(values[i]))

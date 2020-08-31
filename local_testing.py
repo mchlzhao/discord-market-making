@@ -2,7 +2,7 @@ import sys
 
 from account import Account
 from controller import Controller
-from util import Product, Side
+from util import Product
 
 products = [
     Product(1, 0, 'E1'),
@@ -40,7 +40,7 @@ for line in sys.stdin:
         price = int(command[3])
         assert(product_order >= 1 and product_order <= len(products))
 
-        result = controller.process_bid(account_id, product_order, Side.BUY, price, True)
+        result = controller.process_buy(account_id, product_order, price, True)
         print('return: %d %s' % (result[0], str(result[1]) if result[1] is not None else '-'))
     elif command[0] == 'sell':
         account_id = int(command[1])
@@ -48,7 +48,7 @@ for line in sys.stdin:
         price = int(command[3])
         assert(product_order >= 1 and product_order <= len(products))
 
-        result = controller.process_bid(account_id, product_order, Side.SELL, price, True)
+        result = controller.process_sell(account_id, product_order, price, True)
         print('return: %d %s' % (result[0], str(result[1]) if result[1] is not None else '-'))
     elif command[0] == 'cancel':
         side = command[1][0]
@@ -56,7 +56,10 @@ for line in sys.stdin:
         product_order = int(command[3])
         assert(product_order >= 1 and product_order <= len(products))
 
-        result = controller.process_cancel(account_id, product_order, Side.BUY if side == 'b' else Side.SELL, True)
+        if side == 'b':
+            result = controller.process_cancel_buy(account_id, product_order, True)
+        else:
+            result = controller.process_cancel_sell(account_id, product_order, True)
         print("return: %d" % result)
     elif command[0] == 'print':
         controller.engine.print_order_books()

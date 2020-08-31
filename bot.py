@@ -5,16 +5,12 @@ import discord
 from discord.ext import commands
 
 from controller import Controller
-from util import Side
 
 TOKEN = config('DISCORD_TOKEN')
 ADMINS = ['mzhao#1429']
 
 SUCCESS_EMOJI = '✅'
 FAILURE_EMOJI = '❌'
-
-USER_LIMIT = 10
-POSITION_LIMIT = 5
 
 ####################
 
@@ -90,7 +86,7 @@ async def buy_command(ctx, *args):
         await usage(ctx)
         return
 
-    result = controller.process_bid(discord_id, product_id, Side.BUY, price, True)
+    result = controller.process_buy(discord_id, product_id, price, True)
 
     if result[0] == -2:
         await ctx.message.add_reaction(FAILURE_EMOJI)
@@ -149,7 +145,7 @@ async def sell_command(ctx, *args):
         await usage(ctx)
         return
     
-    result = controller.process_bid(discord_id, product_id, Side.SELL, price, True)
+    result = controller.process_sell(discord_id, product_id, price, True)
 
     if result[0] == -2:
         await ctx.message.add_reaction(FAILURE_EMOJI)
@@ -201,14 +197,18 @@ async def cancel_command(ctx, *args):
     if len(args) < 2 or not args[1].isdigit() or args[0].lower() not in ['buy', 'sell', 'b', 's']:
         await usage(ctx)
         return
-    side = Side.BUY if args[0].lower() in ['buy', 'b'] else Side.SELL
+    
+    is_buy = args[0].lower() in ['buy', 'b']
     try:
         product_id = int(args[1])
     except ValueError:
         await usage(ctx)
         return
     
-    result = controller.process_cancel(discord_id, product_id, side, True)
+    if is_buy:
+        result = controller.process_cancel_buy(discord_id, product_id, True)
+    else:
+        result = controller.process_cancel_sell(discord_id, product_id, True)
 
     if result == -1:
         await ctx.message.add_reaction(FAILURE_EMOJI)
