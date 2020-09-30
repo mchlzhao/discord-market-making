@@ -273,7 +273,7 @@ class Controller:
         returns list of pairs of accounts and their received payouts
         '''
         ordered_accounts = self.get_accounts_most_pos()
-        bonuses = [75, 60, 45, 30, 15, 0]
+        bonuses = [105, 100, 90, 70, 40, 0, 0, 0]
 
         payouts = []
         for account, bonus in zip(ordered_accounts, bonuses):
