@@ -91,6 +91,18 @@ def instrument_deactivate_all():
     cur.execute(query)
     conn.commit()
 
+def get_display_order_using_id(instrument_id):
+    query = '''SELECT display_order
+                FROM Instrument
+                WHERE instrument_id = %s'''
+    data = (instrument_id, )
+
+    cur = conn.cursor()
+    cur.execute(query, data)
+    conn.commit()
+
+    return cur.fetchone()[0]
+
 # managing positions
 
 def initialise_position():
@@ -130,6 +142,21 @@ def get_position(account_id, display_order):
     cur = conn.cursor()
     cur.execute(query, data)
     conn.commit()
+
+    return cur.fetchone()[0]
+
+def get_all_positions_using_display_order(display_order):
+    query = '''SELECT account_id, num_positions
+               FROM Position
+               JOIN Instrument on Position.instrument_id = Instrument.id
+               WHERE display_order = %s'''
+    data = (display_order, )
+
+    cur = conn.cursor()
+    cur.execute(query, data)
+    conn.commit()
+
+    return cur.fetchall()
 
 # trading
 
@@ -291,3 +318,12 @@ def get_existing_order(account_id, display_order, side):
     conn.commit()
 
     return cur.fetchone()
+
+def add_transaction(buyer_id, seller_id, is_buyer_maker, instrument_id, price):
+    query = '''INSERT INTO Transaction (transaction_time, buyer_id, seller_id, maker_side, instrument_id, price)
+               VALUES (%s, %s, %s, %s, %s, %s)'''
+    data = (datetime.now(), buyer_id, seller_id, 'buy' if is_buyer_maker else 'sell', instrument_id, price)
+
+    cur = conn.cursor()
+    cur.execute(query, data)
+    conn.commit()
