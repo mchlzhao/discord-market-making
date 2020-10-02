@@ -18,6 +18,9 @@ class TradingRepository:
     def update_order_status(self, order: Order, status: str) -> None:
         raise NotImplementedError()
 
+    def update_order_status_using_order_id(self, order_id: int, status: str) -> None:
+        raise NotImplementedError()
+
     def get_existing_order(self, account_id: str, display_order: int, side: Side) -> Tuple:
         raise NotImplementedError()
 

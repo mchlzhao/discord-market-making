@@ -4,14 +4,6 @@ from entities.instrument_type import InstrumentType
 from entities.instrument import Instrument
 from repos.instrument_repository import InstrumentRepository
 
-conn = psycopg2.connect(
-    host = 'localhost',
-    port = 5432,
-    dbname = 'postgres',
-    user = 'postgres',
-    options='-c search_path="market_test"'
-)
-
 class PostgresInstrumentRepository(InstrumentRepository):
     def __init__(self, conn):
         self.conn = conn
@@ -58,3 +50,32 @@ class PostgresInstrumentRepository(InstrumentRepository):
         self.conn.commit()
 
         return cur.fetchone()[0]
+
+    def get_instrument_using_id(self, instrument_id: int) -> Instrument:
+        query = '''SELECT id, type_id, display_order, week_number, is_active
+                   FROM Instrument
+                   WHERE id = %s'''
+        data = (instrument_id, )
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()
+
+        res = cur.fetchone()
+
+        return Instrument(res[0], res[1], res[2], res[3], res[4])
+
+    def get_instrument_using_display_order(self, display_order: int) -> Instrument:
+        query = '''SELECT id, type_id, display_order, week_number, is_active
+                   FROM Instrument
+                   WHERE display_order = %s
+                   AND is_active'''
+        data = (display_order, )
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()
+
+        res = cur.fetchone()
+
+        return Instrument(res[0], res[1], res[2], res[3], res[4])

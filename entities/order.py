@@ -8,3 +8,6 @@ class Order:
         self.instrument: Instrument = instrument
         self.side: Side = side
         self.price: int = price
+
+    def __repr__(self):
+        return ' '.join([self.account.name, self.instrument.id, str(self.side), str(self.price)])

@@ -4,11 +4,14 @@ class AccountRepository:
     def add_account(self, account: Account) -> None:
         raise NotImplementedError()
 
-    def get_account_balance(self, account: Account) -> int:
+    def get_account_balance_using_id(self, account_id: str) -> int:
         raise NotImplementedError()
 
-    def change_account_balance(self, account: Account, new_balance: int) -> None:
+    def change_account_balance_using_id(self, account_id: str, new_balance: int) -> None:
         raise NotImplementedError()
 
-    def increment_account_balance(self, account: Account, inc: int) -> None:
+    def increment_account_balance_using_id(self, account_id: str, inc: int) -> None:
+        raise NotImplementedError()
+
+    def get_account_using_id(self, account_id: str) -> Account:
         raise NotImplementedError()

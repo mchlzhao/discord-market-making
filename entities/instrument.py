@@ -5,3 +5,4 @@ class Instrument:
         self.display_order: int = display_order
         self.week_number: int = week_number
         self.is_active: bool = is_active
+    

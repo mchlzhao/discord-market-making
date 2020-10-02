@@ -8,14 +8,6 @@ from entities.side import Side
 from entities.transaction import Transaction
 from repos.trading_repository import TradingRepository
 
-conn = psycopg2.connect(
-    host = 'localhost',
-    port = 5432,
-    dbname = 'postgres',
-    user = 'postgres',
-    options='-c search_path="market_test"'
-)
-
 class PostgresTradingRepository(TradingRepository):
     def __init__(self, conn):
         self.conn = conn
@@ -23,7 +15,7 @@ class PostgresTradingRepository(TradingRepository):
     def add_order(self, order: Order, status: str) -> None:
         query = '''INSERT INTO TradeOrder (account_id, instrument_id, side, price, order_time, status)
                 VALUES (%s, %s, %s, %s, %s, %s)'''
-        data = (order.account.account_id, order.instrument.id, order.side, order.price, datetime.now(), status)
+        data = (order.account.id, order.instrument.id, 'buy' if order.side == Side.BUY else 'sell', order.price, datetime.now(), status)
 
         cur = self.conn.cursor()
         cur.execute(query, data)
@@ -79,6 +71,16 @@ class PostgresTradingRepository(TradingRepository):
                 AND side = %s
                 AND status = 'unfilled' '''
         data = (status, order.account.id, order.instrument.id, order.side)
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()
+
+    def update_order_status_using_order_id(self, order_id: int, status: str) -> None:
+        query = '''UPDATE TradeOrder
+                SET status = %s
+                WHERE id = %s'''
+        data = (status, order_id)
 
         cur = self.conn.cursor()
         cur.execute(query, data)

@@ -1,3 +1,5 @@
+from typing import List, Tuple
+
 from entities.account import Account
 from entities.instrument import Instrument
 

@@ -1,3 +1,4 @@
+import psycopg2
 import random
 
 from engine_test import Engine
@@ -7,11 +8,30 @@ from test import *
 
 import settings
 
+from repos.postgres.account_repository import PostgresAccountRepository
+from repos.postgres.instrument_repository import PostgresInstrumentRepository
+from repos.postgres.position_repository import PostgresPositionRepository
+from repos.postgres.trading_repository import PostgresTradingRepository
+
 class Controller:
     def __init__(self, sheet_name, new_game = False):
         self.sheet_interface = SheetInterface(sheet_name)
 
-        self.engine = Engine()
+        self.conn = psycopg2.connect(
+            host = 'localhost',
+            port = 5432,
+            dbname = 'postgres',
+            user = 'postgres',
+            options='-c search_path="market_test"'
+        )
+
+        self.account_repository = PostgresAccountRepository(self.conn)
+        self.instrument_repository = PostgresInstrumentRepository(self.conn)
+        self.position_repository = PostgresPositionRepository(self.conn)
+        self.trading_repository = PostgresTradingRepository(self.conn)
+
+        self.engine = Engine(self.account_repository, self.instrument_repository,
+            self.position_repository, self.trading_repository)
     
     def add_account(self, account_id, name, do_write):
         '''

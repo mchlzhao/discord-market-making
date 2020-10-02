@@ -13,3 +13,6 @@ class InstrumentRepository():
 
     def get_display_order_using_id(self, instrument_id: int) -> int:
         raise NotImplementedError()
+
+    def get_instrument_using_display_order(self, display_order: int) -> Instrument:
+        raise NotImplementedError()
