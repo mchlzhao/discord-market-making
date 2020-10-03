@@ -1,8 +1,8 @@
-from enum import IntEnum
+from enum import Enum
 
-class Side(IntEnum):
-    BUY = 0
-    SELL = 1
+class Side(Enum):
+    BUY = 'buy'
+    SELL = 'sell'
 
     def __str__(self):
-        return str(self.name).lower()
+        return self.value

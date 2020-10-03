@@ -1,6 +1,9 @@
-from enum import IntEnum
+from enum import Enum
 
-class Status(IntEnum):
-    UNFILLED = 0
-    FILLED = 1
-    CANCELLED = 2
+class Status(Enum):
+    UNFILLED = 'unfilled'
+    FILLED = 'filled'
+    CANCELLED = 'cancelled'
+
+    def __str__(self):
+        return self.value

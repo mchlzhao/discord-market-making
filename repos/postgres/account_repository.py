@@ -16,6 +16,23 @@ class PostgresAccountRepository(IAccountRepository):
         cur.execute(query, data)
         self.conn.commit()
 
+    def get_account_using_id(self, account_id: str) -> Account:
+        query = '''SELECT name, balance
+                    FROM Account
+                    WHERE id = %s'''
+        data = (account_id, )
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()
+
+        res = cur.fetchone()
+        
+        if res is None:
+            return None
+
+        return Account(account_id, res[0], res[1])
+
     def get_account_balance_using_id(self, account_id: str) -> int:
         query = '''SELECT balance
                 FROM Account
@@ -26,7 +43,12 @@ class PostgresAccountRepository(IAccountRepository):
         cur.execute(query, data)
         self.conn.commit()
 
-        return cur.fetchone()[0]
+        res = cur.fetchone()
+        
+        if res is None:
+            return None
+
+        return res[0]
 
     def change_account_balance_using_id(self, account_id: str, new_balance: int) -> None:
         query = '''UPDATE Account
@@ -47,20 +69,3 @@ class PostgresAccountRepository(IAccountRepository):
         cur = self.conn.cursor()
         cur.execute(query, data)
         self.conn.commit()
-
-    def get_account_using_id(self, account_id: str) -> Account:
-        query = '''SELECT name, balance
-                    FROM Account
-                    WHERE id = %s'''
-        data = (account_id, )
-
-        cur = self.conn.cursor()
-        cur.execute(query, data)
-        self.conn.commit()
-
-        res = cur.fetchone()
-        
-        if res is None:
-            return None
-
-        return Account(account_id, res[0], res[1])

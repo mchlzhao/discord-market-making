@@ -2,6 +2,7 @@ import psycopg2
 from datetime import datetime
 from typing import List, Tuple
 
+from entities.account import Account
 from entities.instrument import Instrument
 from entities.order import Order
 from entities.side import Side
@@ -15,20 +16,18 @@ class PostgresTradingRepository(ITradingRepository):
 
     def add_order(self, order: Order, status: str) -> None:
         query = '''INSERT INTO TradeOrder (account_id, instrument_id, side, price, order_time, status)
-                SELECT %s, id, %s, %s, %s, %s
-                FROM Instrument
-                WHERE display_order = %s
-                AND is_active'''
-        data = (order.account.id, str(order.side), order.price, datetime.now(), status, order.instrument.display_order)
+                VALUES (%s, %s, %s, %s, %s, %s)'''
+        data = (order.account_id, order.instrument_id, str(order.side), order.price, datetime.now(), status)
 
         cur = self.conn.cursor()
         cur.execute(query, data)
         self.conn.commit()
-
-    def get_best_buy(self, instrument: Instrument, num_results: int = None) -> List[Tuple]:
-        query = '''SELECT *
+    
+    def get_best_buy_using_display_order(self, display_order: int, num_results: int = None) -> List[Order]:
+        query = '''SELECT account_id, instrument_id, side, price
                 FROM TradeOrder
                 JOIN Instrument ON TradeOrder.instrument_id = Instrument.id
+                JOIN Account ON TradeOrder.account_id = Account.id
                 WHERE display_order = %s
                 AND is_active
                 AND side = 'buy'
@@ -37,19 +36,40 @@ class PostgresTradingRepository(ITradingRepository):
                 LIMIT '''
         if num_results == None:
             query += 'ALL'
-            data = (instrument.display_order, )
+            data = (display_order, )
         else:
             query += '%s'
-            data = (instrument.display_order, num_results)
+            data = (display_order, num_results)
 
         cur = self.conn.cursor()
         cur.execute(query, data)
         self.conn.commit()
 
-        return cur.fetchall()
+        return list(map(Order.from_tuple, cur.fetchall()))
 
-    def get_best_sell(self, instrument: Instrument, num_results: int = None) -> List[Tuple]:
-        query = '''SELECT *
+    def get_best_buy_using_instrument_id(self, instrument_id: int, num_results: int = None) -> List[Order]:
+        query = '''SELECT account_id, instrument_id, side, price
+                FROM TradeOrder
+                WHERE instrument_id = %s
+                AND side = 'buy'
+                AND status = 'unfilled'
+                ORDER BY price DESC, order_time ASC
+                LIMIT '''
+        if num_results == None:
+            query += 'ALL'
+            data = (instrument_id, )
+        else:
+            query += '%s'
+            data = (instrument_id, num_results)
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()
+
+        return list(map(Order.from_tuple, cur.fetchall()))
+
+    def get_best_sell_using_display_order(self, display_order: int, num_results: int = None) -> List[Order]:
+        query = '''SELECT account_id, instrument_id, side, price
                 FROM TradeOrder
                 JOIN Instrument ON TradeOrder.instrument_id = Instrument.id
                 WHERE display_order = %s
@@ -60,16 +80,37 @@ class PostgresTradingRepository(ITradingRepository):
                 LIMIT '''
         if num_results == None:
             query += 'ALL'
-            data = (instrument.display_order, )
+            data = (display_order, )
         else:
             query += '%s'
-            data = (instrument.display_order, num_results)
+            data = (display_order, num_results)
 
         cur = self.conn.cursor()
         cur.execute(query, data)
         self.conn.commit()
 
-        return cur.fetchall()
+        return list(map(Order.from_tuple, cur.fetchall()))
+
+    def get_best_sell_using_instrument_id(self, instrument_id: int, num_results: int = None) -> List[Order]:
+        query = '''SELECT account_id, instrument_id, side, price
+                FROM TradeOrder
+                WHERE instrument_id = %s
+                AND side = 'sell'
+                AND status = 'unfilled'
+                ORDER BY price ASC, order_time ASC
+                LIMIT '''
+        if num_results == None:
+            query += 'ALL'
+            data = (instrument_id, )
+        else:
+            query += '%s'
+            data = (instrument_id, num_results)
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()
+
+        return list(map(Order.from_tuple, cur.fetchall()))
 
     def update_order_status(self, order: Order, status: str) -> None:
         query = '''UPDATE TradeOrder
