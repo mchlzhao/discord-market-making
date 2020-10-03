@@ -2,16 +2,16 @@ import psycopg2
 
 from entities.instrument_type import InstrumentType
 from entities.instrument import Instrument
-from repos.instrument_repository import InstrumentRepository
+from repos.instrument_repository import IInstrumentRepository
 
-class PostgresInstrumentRepository(InstrumentRepository):
+class PostgresInstrumentRepository(IInstrumentRepository):
     def __init__(self, conn):
         self.conn = conn
 
-    def add_instrument_type(self, instrument_type: InstrumentType) -> None:
+    def add_instrument_type(self, description: str) -> None:
         query = '''INSERT INTO InstrumentType (description)
                 VALUES (%s)'''
-        data = (instrument_type.description, )
+        data = (description, )
 
         cur = self.conn.cursor()
         cur.execute(query, data)
@@ -39,34 +39,8 @@ class PostgresInstrumentRepository(InstrumentRepository):
         cur.execute(query)
         self.conn.commit()
 
-    def get_display_order_using_id(self, instrument_id: int) -> int:
-        query = '''SELECT display_order
-                    FROM Instrument
-                    WHERE instrument_id = %s'''
-        data = (instrument_id, )
-
-        cur = self.conn.cursor()
-        cur.execute(query, data)
-        self.conn.commit()
-
-        return cur.fetchone()[0]
-
-    def get_instrument_using_id(self, instrument_id: int) -> Instrument:
-        query = '''SELECT id, type_id, display_order, week_number, is_active
-                   FROM Instrument
-                   WHERE id = %s'''
-        data = (instrument_id, )
-
-        cur = self.conn.cursor()
-        cur.execute(query, data)
-        self.conn.commit()
-
-        res = cur.fetchone()
-
-        return Instrument(res[0], res[1], res[2], res[3], res[4])
-
     def get_instrument_using_display_order(self, display_order: int) -> Instrument:
-        query = '''SELECT id, type_id, display_order, week_number, is_active
+        query = '''SELECT type_id, display_order, week_number, is_active
                    FROM Instrument
                    WHERE display_order = %s
                    AND is_active'''
@@ -78,4 +52,7 @@ class PostgresInstrumentRepository(InstrumentRepository):
 
         res = cur.fetchone()
 
-        return Instrument(res[0], res[1], res[2], res[3], res[4])
+        if res is None:
+            return None
+
+        return Instrument(res[0], res[1], res[2], res[3])

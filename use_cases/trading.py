@@ -2,29 +2,29 @@ from entities.instrument import Instrument
 from entities.order import Order
 from entities.side import Side
 
-from repos.account_repository import AccountRepository
-from repos.instrument_repository import InstrumentRepository
-from repos.position_repository import PositionRepository
-from repos.trading_repository import TradingRepository
+from repos.account_repository import IAccountRepository
+from repos.instrument_repository import IInstrumentRepository
+from repos.position_repository import IPositionRepository
+from repos.trading_repository import ITradingRepository
 
-class Engine:
-    def __init__(self, account_repository: AccountRepository, instrument_repository: InstrumentRepository,
-            position_repository: PositionRepository, trading_repository: TradingRepository):
+class TradingUseCase:
+    def __init__(self, account_repository: IAccountRepository, instrument_repository: IInstrumentRepository,
+            position_repository: IPositionRepository, trading_repository: ITradingRepository):
 
-        self.account_repository: AccountRepository = account_repository
-        self.instrument_repository: InstrumentRepository = instrument_repository
-        self.position_repository: PositionRepository = position_repository
-        self.trading_repository: TradingRepository = trading_repository
+        self.account_repository: IAccountRepository = account_repository
+        self.instrument_repository: IInstrumentRepository = instrument_repository
+        self.position_repository: IPositionRepository = position_repository
+        self.trading_repository: ITradingRepository = trading_repository
 
-    def is_buy_in_cross(self, account_id, display_order, price):
-        existing_sell = self.trading_repository.get_existing_order(account_id, display_order, 'sell')
+    def _is_buy_in_cross(self, account_id: str, display_order: int, price: int) -> bool:
+        existing_sell = self.trading_repository.get_existing_order(account_id, display_order, Side.SELL)
         return existing_sell is not None and existing_sell[4] <= price
 
-    def is_sell_in_cross(self, account_id, display_order, price):
-        existing_buy = self.trading_repository.get_existing_order(account_id, display_order, 'buy')
+    def _is_sell_in_cross(self, account_id: str, display_order: int, price: int) -> bool:
+        existing_buy = self.trading_repository.get_existing_order(account_id, display_order, Side.BUY)
         return existing_buy is not None and price <= existing_buy[4]
     
-    def process_bid(self, account_id, display_order, side, price):
+    def process_bid(self, account_id: str, display_order: int, side: Side, price: int):
         if side == Side.BUY:
             return self.process_buy(account_id, display_order, price)
         
@@ -32,7 +32,7 @@ class Engine:
 
     # assumes buys do not cross with existing sells
     def process_buy(self, account_id, display_order, price):
-        existing = self.trading_repository.get_existing_order(account_id, display_order, 'buy')
+        existing = self.trading_repository.get_existing_order(account_id, display_order, Side.BUY)
         if existing is not None:
             self.process_cancel(account_id, display_order, 'buy')
 
@@ -51,7 +51,7 @@ class Engine:
             return None
         
         self.trading_repository.add_order(order, 'filled')
-        self.trading_repository.update_order_status_using_order_id(best_sell[0], 'filled')
+        self.trading_repository.update_order_status_using(best_sell[2], display_order, best_sell[3], 'filled')
 
         print('%s bought from %s instrument display order = %d price = %d' %
             (account_id, best_sell[2], best_sell[5], best_sell[4]))
@@ -66,7 +66,7 @@ class Engine:
         }
 
     def process_sell(self, account_id, display_order, price):
-        existing = self.trading_repository.get_existing_order(account_id, display_order, 'sell')
+        existing = self.trading_repository.get_existing_order(account_id, display_order, Side.SELL)
         if existing is not None:
             self.process_cancel(account_id, display_order, 'sell')
 
@@ -85,7 +85,7 @@ class Engine:
             return None
         
         self.trading_repository.add_order(order, 'filled')
-        self.trading_repository.update_order_status_using_order_id(best_buy[0], 'filled')
+        self.trading_repository.update_order_status_using(best_buy[2], display_order, best_buy[3], 'filled')
 
         print('%s sold to %s instrument display order = %d price = %d' % 
             (account_id, best_buy[2], best_buy[5], best_buy[4]))

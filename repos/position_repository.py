@@ -3,7 +3,7 @@ from typing import List, Tuple
 from entities.account import Account
 from entities.instrument import Instrument
 
-class PositionRepository:
+class IPositionRepository:
     def initialise_position(self) -> None:
         raise NotImplementedError()
 

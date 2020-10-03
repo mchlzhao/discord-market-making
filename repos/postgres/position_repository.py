@@ -2,9 +2,9 @@ from typing import List, Tuple
 
 from entities.account import Account
 from entities.instrument import Instrument
-from repos.position_repository import PositionRepository
+from repos.position_repository import IPositionRepository
 
-class PostgresPositionRepository(PositionRepository):
+class PostgresPositionRepository(IPositionRepository):
     def __init__(self, conn):
         self.conn = conn
 

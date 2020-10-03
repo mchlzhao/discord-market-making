@@ -1,9 +1,9 @@
 import psycopg2
 
 from entities.account import Account
-from repos.account_repository import AccountRepository
+from repos.account_repository import IAccountRepository
 
-class PostgresAccountRepository(AccountRepository):
+class PostgresAccountRepository(IAccountRepository):
     def __init__(self, conn):
         self.conn = conn
 
@@ -59,5 +59,8 @@ class PostgresAccountRepository(AccountRepository):
         self.conn.commit()
 
         res = cur.fetchone()
+        
+        if res is None:
+            return None
 
         return Account(account_id, res[0], res[1])

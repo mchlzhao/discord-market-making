@@ -6,16 +6,20 @@ from entities.instrument import Instrument
 from entities.order import Order
 from entities.side import Side
 from entities.transaction import Transaction
-from repos.trading_repository import TradingRepository
 
-class PostgresTradingRepository(TradingRepository):
+from repos.trading_repository import ITradingRepository
+
+class PostgresTradingRepository(ITradingRepository):
     def __init__(self, conn):
         self.conn = conn
 
     def add_order(self, order: Order, status: str) -> None:
         query = '''INSERT INTO TradeOrder (account_id, instrument_id, side, price, order_time, status)
-                VALUES (%s, %s, %s, %s, %s, %s)'''
-        data = (order.account.id, order.instrument.id, 'buy' if order.side == Side.BUY else 'sell', order.price, datetime.now(), status)
+                SELECT %s, id, %s, %s, %s, %s
+                FROM Instrument
+                WHERE display_order = %s
+                AND is_active'''
+        data = (order.account.id, str(order.side), order.price, datetime.now(), status, order.instrument.display_order)
 
         cur = self.conn.cursor()
         cur.execute(query, data)
@@ -24,17 +28,19 @@ class PostgresTradingRepository(TradingRepository):
     def get_best_buy(self, instrument: Instrument, num_results: int = None) -> List[Tuple]:
         query = '''SELECT *
                 FROM TradeOrder
-                WHERE instrument_id = %s
+                JOIN Instrument ON TradeOrder.instrument_id = Instrument.id
+                WHERE display_order = %s
+                AND is_active
                 AND side = 'buy'
                 AND status = 'unfilled'
                 ORDER BY price DESC, order_time ASC
                 LIMIT '''
         if num_results == None:
             query += 'ALL'
-            data = (instrument.id, )
+            data = (instrument.display_order, )
         else:
             query += '%s'
-            data = (instrument.id, num_results)
+            data = (instrument.display_order, num_results)
 
         cur = self.conn.cursor()
         cur.execute(query, data)
@@ -45,17 +51,19 @@ class PostgresTradingRepository(TradingRepository):
     def get_best_sell(self, instrument: Instrument, num_results: int = None) -> List[Tuple]:
         query = '''SELECT *
                 FROM TradeOrder
-                WHERE instrument_id = %s
+                JOIN Instrument ON TradeOrder.instrument_id = Instrument.id
+                WHERE display_order = %s
+                AND is_active
                 AND side = 'sell'
                 AND status = 'unfilled'
                 ORDER BY price ASC, order_time ASC
                 LIMIT '''
         if num_results == None:
             query += 'ALL'
-            data = (instrument.id, )
+            data = (instrument.display_order, )
         else:
             query += '%s'
-            data = (instrument.id, num_results)
+            data = (instrument.display_order, num_results)
 
         cur = self.conn.cursor()
         cur.execute(query, data)
@@ -66,21 +74,28 @@ class PostgresTradingRepository(TradingRepository):
     def update_order_status(self, order: Order, status: str) -> None:
         query = '''UPDATE TradeOrder
                 SET status = %s
+                FROM Instrument
                 WHERE account_id = %s
-                AND instrument_id = %s
+                AND display_order = %s
+                AND is_active
                 AND side = %s
                 AND status = 'unfilled' '''
-        data = (status, order.account.id, order.instrument.id, order.side)
+        data = (status, order.account.id, order.instrument.display_order, str(order.side))
 
         cur = self.conn.cursor()
         cur.execute(query, data)
         self.conn.commit()
-
-    def update_order_status_using_order_id(self, order_id: int, status: str) -> None:
+    
+    def update_order_status_using(self, account_id: str, display_order: int, side: Side, status: str) -> None:
         query = '''UPDATE TradeOrder
-                SET status = %s
-                WHERE id = %s'''
-        data = (status, order_id)
+                   SET status = %s
+                   FROM Instrument
+                   WHERE account_id = %s
+                   AND display_order = %s
+                   AND is_active
+                   AND side = %s
+                   AND status = 'unfilled' '''
+        data = (status, account_id, display_order, side)
 
         cur = self.conn.cursor()
         cur.execute(query, data)
@@ -95,20 +110,10 @@ class PostgresTradingRepository(TradingRepository):
                 AND display_order = %s
                 AND is_active
                 AND side = %s'''
-        data = (account_id, display_order, side)
+        data = (account_id, display_order, str(side))
 
         cur = self.conn.cursor()
         cur.execute(query, data)
         self.conn.commit()
 
         return cur.fetchone()
-
-    def add_transaction(self, transaction: Transaction) -> None:
-        query = '''INSERT INTO Transaction (transaction_time, buyer_id, seller_id, maker_side, instrument_id, price)
-                VALUES (%s, %s, %s, %s, %s, %s)'''
-        data = (datetime.now(), transaction.buyer_account.id, transaction.seller_account.id,
-            'buy' if transaction.is_buyer_maker else 'sell', transaction.instrument.id, transaction.price)
-
-        cur = self.conn.cursor()
-        cur.execute(query, data)
-        self.conn.commit()

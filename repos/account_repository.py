@@ -1,6 +1,6 @@
 from entities.account import Account
 
-class AccountRepository:
+class IAccountRepository:
     def add_account(self, account: Account) -> None:
         raise NotImplementedError()
 

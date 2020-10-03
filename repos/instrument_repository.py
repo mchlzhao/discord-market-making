@@ -1,7 +1,7 @@
 from entities.instrument_type import InstrumentType
 from entities.instrument import Instrument
 
-class InstrumentRepository():
+class IInstrumentRepository():
     def add_instrument_type(self, instrument_type: InstrumentType) -> None:
         raise NotImplementedError()
 

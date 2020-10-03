@@ -1,11 +1,10 @@
 import sys
 import psycopg2
 
-from controller_test import Controller
 from util import Product
 from entities.side import Side
 
-from engine_test import Engine
+from use_cases.trading import TradingUseCase
 
 from repos.postgres.account_repository import PostgresAccountRepository
 from repos.postgres.instrument_repository import PostgresInstrumentRepository
@@ -24,7 +23,7 @@ instrument_repository = PostgresInstrumentRepository(conn)
 position_repository = PostgresPositionRepository(conn)
 trading_repository = PostgresTradingRepository(conn)
 
-controller = Engine(account_repository, instrument_repository,
+controller = TradingUseCase(account_repository, instrument_repository,
     position_repository, trading_repository)
 
 print('\nTYPE YOUR COMMANDS HERE:')
