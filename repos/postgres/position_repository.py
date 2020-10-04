@@ -2,6 +2,7 @@ from typing import List, Tuple
 
 from entities.account import Account
 from entities.instrument import Instrument
+
 from repos.position_repository import IPositionRepository
 
 class PostgresPositionRepository(IPositionRepository):
@@ -21,12 +22,9 @@ class PostgresPositionRepository(IPositionRepository):
     def update_account_position_in_instrument(self, account: Account, instrument: Instrument, inc: int) -> None:
         query = '''UPDATE Position
                 SET num_positions = num_positions + %s
-                FROM Instrument
-                WHERE Position.instrument_id = Instrument.id
-                AND Instrument.is_active
-                AND Instrument.display_order = %s
-                AND Position.account_id = %s'''
-        data = (inc, instrument.display_order, account.id)
+                WHERE account_id = %s
+                AND instrument_id = %s'''
+        data = (inc, account.id, instrument.id)
 
         cur = self.conn.cursor()
         cur.execute(query, data)

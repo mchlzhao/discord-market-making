@@ -1,7 +1,10 @@
 import psycopg2
 
-from entities.instrument_type import InstrumentType
+from typing import List
+
 from entities.instrument import Instrument
+from entities.instrument_type import InstrumentType
+
 from repos.instrument_repository import IInstrumentRepository
 
 class PostgresInstrumentRepository(IInstrumentRepository):
@@ -16,6 +19,18 @@ class PostgresInstrumentRepository(IInstrumentRepository):
         cur = self.conn.cursor()
         cur.execute(query, data)
         self.conn.commit()
+    
+    def get_instrument_type_by_similar_description(self, description: str) -> List[InstrumentType]:
+        query = '''SELECT id, description
+                   FROM InstrumentType
+                   WHERE description LIKE %s'''
+        data = ('%' + description + '%', )
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()
+
+        return list(map(InstrumentType.from_tuple, cur.fetchall()))
 
     def add_instrument(self, instrument: Instrument) -> None:
         if instrument.week_number == None:
@@ -40,7 +55,7 @@ class PostgresInstrumentRepository(IInstrumentRepository):
         self.conn.commit()
 
     def get_instrument_using_display_order(self, display_order: int) -> Instrument:
-        query = '''SELECT type_id, display_order, week_number, is_active
+        query = '''SELECT id, type_id, display_order, week_number, is_active
                    FROM Instrument
                    WHERE display_order = %s
                    AND is_active'''
@@ -55,4 +70,4 @@ class PostgresInstrumentRepository(IInstrumentRepository):
         if res is None:
             return None
 
-        return Instrument(res[0], res[1], res[2], res[3])
+        return Instrument.from_tuple(res)

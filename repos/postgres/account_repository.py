@@ -1,6 +1,7 @@
 import psycopg2
 
 from entities.account import Account
+
 from repos.account_repository import IAccountRepository
 
 class PostgresAccountRepository(IAccountRepository):

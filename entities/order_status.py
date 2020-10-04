@@ -1,6 +1,6 @@
 from enum import Enum
 
-class Status(Enum):
+class OrderStatus(Enum):
     UNFILLED = 'unfilled'
     FILLED = 'filled'
     CANCELLED = 'cancelled'
