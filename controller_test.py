@@ -1,5 +1,7 @@
 import psycopg2
 
+from decouple import config
+
 from repos.postgres.account_repository import PostgresAccountRepository
 from repos.postgres.instrument_repository import PostgresInstrumentRepository
 from repos.postgres.position_repository import PostgresPositionRepository
@@ -14,10 +16,11 @@ class Controller:
     def __init__(self):
         self.conn = psycopg2.connect(
             host = 'localhost',
-            port = 5432,
-            dbname = 'postgres',
+            port = 15432,
+            dbname = 'market',
             user = 'postgres',
-            options='-c search_path="market_test"'
+            options = '-c search_path="market_test"',
+            password = config('POSTGRES_PW')
         )
 
         self.account_repository: PostgresAccountRepository = PostgresAccountRepository(self.conn)
@@ -36,9 +39,7 @@ class Controller:
         self.cancel_use_case: CancelUseCase = CancelUseCase(
             self.account_repository,
             self.instrument_repository,
-            self.position_repository,
-            self.trading_repository,
-            self.transaction_repository
+            self.trading_repository
         )
         self.sell_use_case: SellUseCase = SellUseCase(
             self.account_repository,

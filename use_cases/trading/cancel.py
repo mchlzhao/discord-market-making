@@ -4,9 +4,18 @@ from entities.order import Order
 from entities.order_status import OrderStatus
 from entities.side import Side
 
-from use_cases.trading.common import TradingUseCase
+from repos.account_repository import IAccountRepository
+from repos.instrument_repository import IInstrumentRepository
+from repos.trading_repository import ITradingRepository
 
-class CancelUseCase(TradingUseCase):
+class CancelUseCase:
+    def __init__(self, account_repository: IAccountRepository, instrument_repository: IInstrumentRepository,
+            trading_repository: ITradingRepository):
+
+        self.account_repository: IAccountRepository = account_repository
+        self.instrument_repository: IInstrumentRepository = instrument_repository
+        self.trading_repository: ITradingRepository = trading_repository
+
     def _cancel(self, account_id: str, display_order: int, side: Side) -> int:
         account: Account = self.account_repository.get_account_using_id(account_id)
         if account is None:

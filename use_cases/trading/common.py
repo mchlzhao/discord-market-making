@@ -7,7 +7,7 @@ from repos.position_repository import IPositionRepository
 from repos.trading_repository import ITradingRepository
 from repos.transaction_repository import ITransactionRepository
 
-class TradingUseCase:
+class BuySellUseCase:
     def __init__(self, account_repository: IAccountRepository, instrument_repository: IInstrumentRepository,
             position_repository: IPositionRepository, trading_repository: ITradingRepository, transaction_repository: ITransactionRepository):
 
@@ -17,7 +17,6 @@ class TradingUseCase:
         self.trading_repository: ITradingRepository = trading_repository
         self.transaction_repository: ITransactionRepository = transaction_repository
     
-class BuySellUseCase(TradingUseCase):
     def process_transaction(self, transaction: Transaction) -> None:
         if transaction.maker_side == Side.BUY:
             print('%s sold to %s: display_order = %d at %d' %
