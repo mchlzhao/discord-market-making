@@ -12,6 +12,7 @@ from repos.postgres.transaction_repository import PostgresTransactionRepository
 from use_cases.admin.add_account import AddAccountUseCase
 from use_cases.admin.mark_instrument import MarkInstrumentUseCase
 from use_cases.admin.pay_bonus import PayBonusUseCase
+from use_cases.api.rest_api import ApiUseCase
 from use_cases.trading.buy import BuyUseCase
 from use_cases.trading.cancel import CancelUseCase
 from use_cases.trading.sell import SellUseCase
@@ -66,6 +67,12 @@ class Controller:
             self.account_repository,
             self.position_repository
         )
+
+        self.api_use_case: ApiUseCase = ApiUseCase(
+            self.account_repository,
+            self.instrument_repository,
+            self.position_repository
+        )
     
     def add_account(self, account_id: str, name: str, balance: int) -> int:
         return self.add_account_use_case.add_account(account_id, name, balance)
@@ -87,6 +94,9 @@ class Controller:
     
     def pay_bonus(self) -> None:
         self.pay_bonus_use_case.pay_bonus()
+    
+    def get_account_info(self) -> dict:
+        return self.api_use_case.get_account_info()
     
     def clear_orders(self):
         '''

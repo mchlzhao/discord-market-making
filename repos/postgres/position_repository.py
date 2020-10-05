@@ -2,8 +2,8 @@ from typing import List, Tuple
 
 from entities.account import Account
 from entities.instrument import Instrument
-
 from repos.position_repository import IPositionRepository
+
 
 class PostgresPositionRepository(IPositionRepository):
     def __init__(self, conn):
@@ -80,6 +80,20 @@ class PostgresPositionRepository(IPositionRepository):
         
         cur = self.conn.cursor()
         cur.execute(query)
+        self.conn.commit()
+
+        return cur.fetchall()
+
+    def get_all_positions_by_account(self, account: Account) -> List[Tuple[int, int]]:
+        query = '''SELECT display_order, num_positions
+                   FROM Position
+                   JOIN Instrument ON Position.instrument_id = Instrument.id
+                   WHERE is_active
+                   AND account_id = %s'''
+        data = (account.id, )
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
         self.conn.commit()
 
         return cur.fetchall()

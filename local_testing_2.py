@@ -48,5 +48,7 @@ for line in sys.stdin:
         print("return:", result)
     elif command[0] == 'paybonus':
         controller.pay_bonus()
+    elif command[0] == 'jsonaccount':
+        print(controller.get_account_info())
     else:
         print(command, 'not found')

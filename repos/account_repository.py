@@ -1,7 +1,12 @@
+from typing import List
+
 from entities.account import Account
 
 class IAccountRepository:
     def add_account(self, account: Account) -> None:
+        raise NotImplementedError()
+
+    def get_all_accounts(self) -> List[Account]:
         raise NotImplementedError()
 
     def get_account_using_id(self, account_id: str) -> Account:

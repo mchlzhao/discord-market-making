@@ -1,4 +1,5 @@
 import psycopg2
+from typing import List
 
 from entities.account import Account
 
@@ -16,9 +17,19 @@ class PostgresAccountRepository(IAccountRepository):
         cur = self.conn.cursor()
         cur.execute(query, data)
         self.conn.commit()
+    
+    def get_all_accounts(self) -> List[Account]:
+        query = '''SELECT id, name, balance
+                   FROM Account'''
+        
+        cur = self.conn.cursor()
+        cur.execute(query)
+        self.conn.commit()
+
+        return list(map(Account.from_tuple, cur.fetchall()))
 
     def get_account_using_id(self, account_id: str) -> Account:
-        query = '''SELECT name, balance
+        query = '''SELECT id, name, balance
                    FROM Account
                    WHERE id = %s'''
         data = (account_id, )
@@ -32,7 +43,7 @@ class PostgresAccountRepository(IAccountRepository):
         if res is None:
             return None
 
-        return Account(account_id, res[0], res[1])
+        return Account.from_tuple(res)
 
     def get_account_balance_using_id(self, account_id: str) -> int:
         query = '''SELECT balance

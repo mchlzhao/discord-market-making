@@ -41,6 +41,16 @@ class PostgresInstrumentRepository(IInstrumentRepository):
         cur.execute(query, data)
         self.conn.commit()
     
+    def get_all_instruments(self) -> List[Instrument]:
+        query = '''SELECT id, type_id, display_order, week_number, is_active, did_occur
+                   FROM Instrument'''
+        
+        cur = self.conn.cursor()
+        cur.execute(query)
+        self.conn.commit()
+
+        return list(map(Instrument.from_tuple, cur.fetchall()))
+    
     def update_instrument_did_occur(self, instrument: Instrument) -> None:
         query = '''UPDATE Instrument
                    SET did_occur = %s

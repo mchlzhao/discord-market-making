@@ -21,3 +21,6 @@ class IPositionRepository:
 
     def get_total_positions_in_active_instruments(self) -> List[Tuple[str, int]]:
         raise NotImplementedError()
+
+    def get_all_positions_by_account(self, account: Account) -> List[Tuple[int, int]]:
+        raise NotImplementedError()
