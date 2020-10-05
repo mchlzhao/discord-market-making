@@ -54,7 +54,7 @@ class BuyUseCase(BuySellUseCase):
     
         seller_account: Account = self.account_repository.get_account_using_id(best_sell.account_id)
 
-        transaction: Transaction = Transaction(buyer_account, seller_account, Side.SELL, instrument.id, best_sell.price)
+        transaction: Transaction = Transaction(buyer_account, seller_account, Side.SELL, instrument, best_sell.price)
         self.process_transaction(transaction)
     
         return (0, transaction.to_dict())

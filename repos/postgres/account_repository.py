@@ -70,3 +70,23 @@ class PostgresAccountRepository(IAccountRepository):
         cur = self.conn.cursor()
         cur.execute(query, data)
         self.conn.commit()
+
+    def save_weekly_balance(self, account_id: str, week_number: int) -> None:
+        query = '''INSERT INTO WeeklyBalance (account_id, week_number, balance)
+                   SELECT id, %s, balance
+                   FROM Account
+                   WHERE id = %s'''
+        data = (week_number, account_id)
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()
+
+    def save_bonus_amount(self, account_id: str, week_number: int, bonus: int) -> None:
+        query = '''INSERT INTO BonusAmount (account_id, week_number, bonus)
+                   VALUES (%s, %s ,%s)'''
+        data = (account_id, week_number, bonus)
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()

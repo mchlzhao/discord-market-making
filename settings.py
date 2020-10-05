@@ -15,6 +15,8 @@ ACCOUNT_COL = 13
 # Game constants
 #
 
+WEEK_NUMBER = 10
+
 USER_LIMIT = 8
 POSITION_LIMIT = 5
 

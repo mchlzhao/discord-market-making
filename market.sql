@@ -53,3 +53,17 @@ create table TradeOrder (
 	processed_time timestamp,
 	primary key (id)
 );
+
+create table BonusAmount (
+	account_id varchar(30) not null references Account(id),
+	week_number int not null,
+	bonus int not null,
+	primary key (account_id, week_number)
+);
+
+create table WeeklyBalance (
+	account_id varchar(30) not null references Account(id),
+	week_number int not null,
+	balance int not null,
+	primary key (account_id, week_number)
+);

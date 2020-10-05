@@ -46,5 +46,7 @@ for line in sys.stdin:
             balance = 0
         result = controller.add_account(account_id, name, balance)
         print("return:", result)
+    elif command[0] == 'paybonus':
+        controller.pay_bonus()
     else:
         print(command, 'not found')

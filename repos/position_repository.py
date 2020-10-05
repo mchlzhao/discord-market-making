@@ -18,3 +18,6 @@ class IPositionRepository:
 
     def get_all_positions_in_instrument(self, instrument: Instrument) -> List[Tuple[str, int]]:
         raise NotImplementedError()
+
+    def get_total_positions_in_active_instruments(self) -> List[Tuple[str, int]]:
+        raise NotImplementedError()
