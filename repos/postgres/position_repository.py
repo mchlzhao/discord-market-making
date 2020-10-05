@@ -9,7 +9,7 @@ class PostgresPositionRepository(IPositionRepository):
     def __init__(self, conn):
         self.conn = conn
 
-    def initialise_position(self) -> None:
+    def initialise_positions(self) -> None:
         query = '''INSERT INTO Position (account_id, instrument_id, num_positions)
                 SELECT Account.id, Instrument.id, 0
                 FROM Account, Instrument
@@ -17,6 +17,17 @@ class PostgresPositionRepository(IPositionRepository):
         
         cur = self.conn.cursor()
         cur.execute(query)
+        self.conn.commit()
+    
+    def initialise_positions_of_account(self, account: Account):
+        query = '''INSERT INTO Position (account_id, instrument_id, num_positions)
+                   SELECT %s, id, 0
+                   FROM Instrument
+                   WHERE is_active'''
+        data = (account.id, )
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
         self.conn.commit()
 
     def update_account_position_in_instrument(self, account: Account, instrument: Instrument, inc: int) -> None:

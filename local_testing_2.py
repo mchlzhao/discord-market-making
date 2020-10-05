@@ -35,7 +35,16 @@ for line in sys.stdin:
         product_order = int(command[1])
         did_occur = (command[2][0] == 'y')
 
-        # controller.mark_occurred(product_order, did_occur, True)
-        print('marked', str(did_occur))
+        result = controller.mark_occurred(product_order, did_occur)
+        print("return:", result)
+    elif command[0] == 'add':
+        account_id = command[1]
+        name = command[2]
+        try:
+            balance = command[3]
+        except:
+            balance = 0
+        result = controller.add_account(account_id, name, balance)
+        print("return:", result)
     else:
         print(command, 'not found')

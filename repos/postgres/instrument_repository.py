@@ -13,7 +13,7 @@ class PostgresInstrumentRepository(IInstrumentRepository):
 
     def add_instrument_type(self, description: str) -> None:
         query = '''INSERT INTO InstrumentType (description)
-                VALUES (%s)'''
+                   VALUES (%s)'''
         data = (description, )
 
         cur = self.conn.cursor()
@@ -33,14 +33,19 @@ class PostgresInstrumentRepository(IInstrumentRepository):
         return list(map(InstrumentType.from_tuple, cur.fetchall()))
 
     def add_instrument(self, instrument: Instrument) -> None:
-        if instrument.week_number == None:
-            query = '''INSERT INTO Instrument (type_id, display_order, week_number, is_active)
-                    VALUES (%s, %s, NULL, TRUE)'''
-            data = (instrument.type_id, instrument.display_order)
-        else:
-            query = '''INSERT INTO Instrument (type_id, display_order, week_number, is_active)
-                    VALUES (%s, %s, %s, TRUE)'''
-            data = (instrument.type_id, instrument.display_order, instrument.week_number)
+        query = '''INSERT INTO Instrument (type_id, display_order, week_number, is_active, did_occur)
+                   VALUES (%s, %s, %s, TRUE, %s)'''
+        data = (instrument.type_id, instrument.display_order, instrument.week_number, instrument.did_occur)
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()
+    
+    def update_instrument_did_occur(self, instrument: Instrument) -> None:
+        query = '''UPDATE Instrument
+                   SET did_occur = %s
+                   WHERE id = %s'''
+        data = (instrument.did_occur, instrument.id)
 
         cur = self.conn.cursor()
         cur.execute(query, data)
@@ -48,14 +53,14 @@ class PostgresInstrumentRepository(IInstrumentRepository):
 
     def deactivate_all(self) -> None:
         query = '''UPDATE Instrument
-                SET is_active = FALSE'''
+                   SET is_active = FALSE'''
         
         cur = self.conn.cursor()
         cur.execute(query)
         self.conn.commit()
 
     def get_instrument_using_display_order(self, display_order: int) -> Instrument:
-        query = '''SELECT id, type_id, display_order, week_number, is_active
+        query = '''SELECT id, type_id, display_order, week_number, is_active, did_occur
                    FROM Instrument
                    WHERE display_order = %s
                    AND is_active'''

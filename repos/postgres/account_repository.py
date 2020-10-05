@@ -10,7 +10,7 @@ class PostgresAccountRepository(IAccountRepository):
 
     def add_account(self, account: Account) -> None:
         query = '''INSERT INTO Account (id, name, balance)
-                VALUES (%s, %s, %s)'''
+                   VALUES (%s, %s, %s)'''
         data = (account.id, account.name, account.balance)
 
         cur = self.conn.cursor()
@@ -19,8 +19,8 @@ class PostgresAccountRepository(IAccountRepository):
 
     def get_account_using_id(self, account_id: str) -> Account:
         query = '''SELECT name, balance
-                    FROM Account
-                    WHERE id = %s'''
+                   FROM Account
+                   WHERE id = %s'''
         data = (account_id, )
 
         cur = self.conn.cursor()
@@ -36,8 +36,8 @@ class PostgresAccountRepository(IAccountRepository):
 
     def get_account_balance_using_id(self, account_id: str) -> int:
         query = '''SELECT balance
-                FROM Account
-                WHERE id = %s'''
+                   FROM Account
+                   WHERE id = %s'''
         data = (account_id, )
 
         cur = self.conn.cursor()
@@ -53,8 +53,8 @@ class PostgresAccountRepository(IAccountRepository):
 
     def change_account_balance_using_id(self, account_id: str, new_balance: int) -> None:
         query = '''UPDATE Account
-                SET balance = %s
-                WHERE id = %s'''
+                   SET balance = %s
+                   WHERE id = %s'''
         data = (new_balance, account_id)
 
         cur = self.conn.cursor()
@@ -63,8 +63,8 @@ class PostgresAccountRepository(IAccountRepository):
 
     def increment_account_balance_using_id(self, account_id: str, inc: int) -> None:
         query = '''UPDATE Account
-                SET balance = balance + %s
-                WHERE id = %s'''
+                   SET balance = balance + %s
+                   WHERE id = %s'''
         data = (inc, account_id)
 
         cur = self.conn.cursor()

@@ -4,7 +4,10 @@ from entities.account import Account
 from entities.instrument import Instrument
 
 class IPositionRepository:
-    def initialise_position(self) -> None:
+    def initialise_positions(self) -> None:
+        raise NotImplementedError()
+
+    def initialise_positions_of_account(self, account: Account) -> None:
         raise NotImplementedError()
 
     def update_account_position_in_instrument(self, account: Account, instrument: Instrument, inc: int) -> None:

@@ -13,6 +13,9 @@ class IInstrumentRepository():
     def add_instrument(self, instrument: Instrument) -> None:
         raise NotImplementedError()
 
+    def update_instrument_did_occur(self, instrument: Instrument) -> None:
+        raise NotImplementedError()
+
     def deactivate_all(self) -> None:
         raise NotImplementedError()
 

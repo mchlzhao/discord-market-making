@@ -1,6 +1,7 @@
 import psycopg2
 
 from decouple import config
+from typing import Tuple
 
 from repos.postgres.account_repository import PostgresAccountRepository
 from repos.postgres.instrument_repository import PostgresInstrumentRepository
@@ -8,6 +9,8 @@ from repos.postgres.position_repository import PostgresPositionRepository
 from repos.postgres.trading_repository import PostgresTradingRepository
 from repos.postgres.transaction_repository import PostgresTransactionRepository
 
+from use_cases.admin.add_account import AddAccountUseCase
+from use_cases.admin.mark_instrument import MarkInstrumentUseCase
 from use_cases.trading.buy import BuyUseCase
 from use_cases.trading.cancel import CancelUseCase
 from use_cases.trading.sell import SellUseCase
@@ -48,32 +51,34 @@ class Controller:
             self.trading_repository,
             self.transaction_repository
         )
+
+        self.add_account_use_case: AddAccountUseCase = AddAccountUseCase(
+            self.account_repository,
+            self.position_repository
+        )
+        self.mark_instrument_use_case: MarkInstrumentUseCase = MarkInstrumentUseCase(
+            self.account_repository,
+            self.instrument_repository,
+            self.position_repository
+        )
     
-    def add_account(self, account_id, name, do_write):
-        pass
+    def add_account(self, account_id: str, name: str, balance: int) -> int:
+        return self.add_account_use_case.add_account(account_id, name, balance)
     
-    def buy(self, account_id, display_order, price):
+    def buy(self, account_id: str, display_order: int, price: int) -> Tuple[int, dict]:
         return self.buy_use_case.buy(account_id, display_order, price)
     
-    def sell(self, account_id, display_order, price):
+    def sell(self, account_id: str, display_order: int, price: int) -> Tuple[int, dict]:
         return self.sell_use_case.sell(account_id, display_order, price)
     
-    def cancel_buy(self, account_id, display_order):
+    def cancel_buy(self, account_id: str, display_order: int) -> int:
         return self.cancel_use_case.cancel_buy(account_id, display_order)
 
-    def cancel_sell(self, account_id, display_order):
+    def cancel_sell(self, account_id: str, display_order: int) -> int:
         return self.cancel_use_case.cancel_sell(account_id, display_order)
     
-    def mark_occurred(self, display_order, did_occur, do_write):
-        pass
-    
-    def get_accounts_most_pos(self):
-        '''
-        returns the list of accounts, sorted in descending order of total positions
-        used for paying out bonuses for taking risk
-        ties are broken by random
-        '''
-        pass
+    def mark_occurred(self, display_order, did_occur):
+        return self.mark_instrument_use_case.mark(display_order, did_occur)
     
     def pay_bonus(self):
         '''
