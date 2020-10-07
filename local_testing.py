@@ -1,9 +1,8 @@
 import sys
 
-from controller_test import Controller
-from util import Product
+from controller import Controller
 
-controller = Controller('Local Testing')
+controller = Controller()
 
 print('\nTYPE YOUR COMMANDS HERE:')
 for line in sys.stdin:
@@ -13,14 +12,14 @@ for line in sys.stdin:
         product_order = int(command[2])
         price = int(command[3])
 
-        result = controller.process_buy(account_id, product_order, price, True)
+        result = controller.buy(account_id, product_order, price)
         print('return: %d %s' % (result[0], str(result[1]) if result[1] is not None else '-'))
     elif command[0] == 'sell':
         account_id = command[1]
         product_order = int(command[2])
         price = int(command[3])
 
-        result = controller.process_sell(account_id, product_order, price, True)
+        result = controller.sell(account_id, product_order, price)
         print('return: %d %s' % (result[0], str(result[1]) if result[1] is not None else '-'))
     elif command[0] == 'cancel':
         side = command[1][0]
@@ -28,15 +27,28 @@ for line in sys.stdin:
         product_order = int(command[3])
 
         if side == 'b':
-            result = controller.process_cancel_buy(account_id, product_order, True)
+            result = controller.cancel_buy(account_id, product_order)
         else:
-            result = controller.process_cancel_sell(account_id, product_order, True)
-        print("return: %d" % result)
+            result = controller.cancel_sell(account_id, product_order)
+        print("return:", result)
     elif command[0] == 'mark':
         product_order = int(command[1])
         did_occur = (command[2][0] == 'y')
 
-        controller.mark_occurred(product_order, did_occur, True)
-        print('marked', str(did_occur))
+        result = controller.mark_occurred(product_order, did_occur)
+        print("return:", result)
+    elif command[0] == 'add':
+        account_id = command[1]
+        name = command[2]
+        try:
+            balance = command[3]
+        except:
+            balance = 0
+        result = controller.add_account(account_id, name, balance)
+        print("return:", result)
+    elif command[0] == 'paybonus':
+        controller.pay_bonus()
+    elif command[0] == 'jsonaccount':
+        print(controller.get_account_info())
     else:
         print(command, 'not found')
