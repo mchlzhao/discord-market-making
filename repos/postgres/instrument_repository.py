@@ -18,7 +18,6 @@ class PostgresInstrumentRepository(IInstrumentRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
     
     def get_description_using_type_id(self, type_id: int) -> str:
         query = '''SELECT description
@@ -28,7 +27,6 @@ class PostgresInstrumentRepository(IInstrumentRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         res = cur.fetchone()
         if res is None:
@@ -44,7 +42,6 @@ class PostgresInstrumentRepository(IInstrumentRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         return list(map(InstrumentType.from_tuple, cur.fetchall()))
 
@@ -55,7 +52,6 @@ class PostgresInstrumentRepository(IInstrumentRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
     
     def get_all_instruments(self) -> List[Instrument]:
         query = '''SELECT id, type_id, display_order, week_number, is_active, did_occur
@@ -63,7 +59,6 @@ class PostgresInstrumentRepository(IInstrumentRepository):
         
         cur = self.conn.cursor()
         cur.execute(query)
-        self.conn.commit()
 
         return list(map(Instrument.from_tuple, cur.fetchall()))
     
@@ -75,7 +70,6 @@ class PostgresInstrumentRepository(IInstrumentRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
     def deactivate_all(self) -> None:
         query = '''UPDATE Instrument
@@ -83,7 +77,6 @@ class PostgresInstrumentRepository(IInstrumentRepository):
         
         cur = self.conn.cursor()
         cur.execute(query)
-        self.conn.commit()
 
     def get_instrument_using_display_order(self, display_order: int) -> Instrument:
         query = '''SELECT id, type_id, display_order, week_number, is_active, did_occur
@@ -94,7 +87,6 @@ class PostgresInstrumentRepository(IInstrumentRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         res = cur.fetchone()
 

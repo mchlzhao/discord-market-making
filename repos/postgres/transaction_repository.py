@@ -16,4 +16,3 @@ class PostgresTransactionRepository(ITransactionRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()

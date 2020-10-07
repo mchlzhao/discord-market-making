@@ -17,7 +17,6 @@ class PostgresPositionRepository(IPositionRepository):
         
         cur = self.conn.cursor()
         cur.execute(query)
-        self.conn.commit()
     
     def initialise_positions_of_account(self, account: Account):
         query = '''INSERT INTO Position (account_id, instrument_id, num_positions)
@@ -28,7 +27,6 @@ class PostgresPositionRepository(IPositionRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
     def update_account_position_in_instrument(self, account: Account, instrument: Instrument, inc: int) -> None:
         query = '''UPDATE Position
@@ -39,7 +37,6 @@ class PostgresPositionRepository(IPositionRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
     def get_account_position_in_instrument(self, account: Account, instrument: Instrument) -> int:
         query = '''SELECT num_positions
@@ -50,7 +47,6 @@ class PostgresPositionRepository(IPositionRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         res = cur.fetchone()
         if res is None:
@@ -67,7 +63,6 @@ class PostgresPositionRepository(IPositionRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         return cur.fetchall()
 
@@ -80,7 +75,6 @@ class PostgresPositionRepository(IPositionRepository):
         
         cur = self.conn.cursor()
         cur.execute(query)
-        self.conn.commit()
 
         return cur.fetchall()
 
@@ -94,6 +88,5 @@ class PostgresPositionRepository(IPositionRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         return cur.fetchall()

@@ -16,7 +16,6 @@ class PostgresAccountRepository(IAccountRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
     
     def get_all_accounts(self) -> List[Account]:
         query = '''SELECT id, name, balance
@@ -24,7 +23,6 @@ class PostgresAccountRepository(IAccountRepository):
         
         cur = self.conn.cursor()
         cur.execute(query)
-        self.conn.commit()
 
         return list(map(Account.from_tuple, cur.fetchall()))
 
@@ -36,7 +34,6 @@ class PostgresAccountRepository(IAccountRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         res = cur.fetchone()
         
@@ -53,7 +50,6 @@ class PostgresAccountRepository(IAccountRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         res = cur.fetchone()
         
@@ -70,7 +66,6 @@ class PostgresAccountRepository(IAccountRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
     def increment_account_balance_using_id(self, account_id: str, inc: int) -> None:
         query = '''UPDATE Account
@@ -80,7 +75,6 @@ class PostgresAccountRepository(IAccountRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
     def save_weekly_balance(self, account_id: str, week_number: int) -> None:
         query = '''INSERT INTO WeeklyBalance (account_id, week_number, balance)
@@ -91,7 +85,6 @@ class PostgresAccountRepository(IAccountRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
     def save_bonus_amount(self, account_id: str, week_number: int, bonus: int) -> None:
         query = '''INSERT INTO BonusAmount (account_id, week_number, bonus)
@@ -100,4 +93,3 @@ class PostgresAccountRepository(IAccountRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()

@@ -75,26 +75,94 @@ class Controller:
             self.trading_repository
         )
     
-    def add_account(self, account_id: str, name: str, balance: int) -> int:
-        return self.add_account_use_case.add_account(account_id, name, balance)
+    def add_account(self, account_id: str, name: str, balance: int = 0) -> int:
+        '''
+        error codes:
+        -1: account_id is already in the game
+        '''
+        try:
+            res: int = self.add_account_use_case.add_account(account_id, name, balance)
+            self.conn.commit()
+            return res
+        except Exception as e:
+            self.conn.rollback()
     
     def buy(self, account_id: str, display_order: int, price: int) -> Tuple[int, dict]:
-        return self.buy_use_case.buy(account_id, display_order, price)
+        '''
+        error codes:
+        -1: account does not exist
+        -2: no instrument has this display_order
+        -3: is in cross with existing order
+        -4: at position limit
+        '''
+        try:
+            res: Tuple[int, dict] = self.buy_use_case.buy(account_id, display_order, price)
+            self.conn.commit()
+            return res
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
     
     def sell(self, account_id: str, display_order: int, price: int) -> Tuple[int, dict]:
-        return self.sell_use_case.sell(account_id, display_order, price)
+        '''
+        error codes are same as self.buy()
+        '''
+        try:
+            res: Tuple[int, dict] = self.sell_use_case.sell(account_id, display_order, price)
+            self.conn.commit()
+            return res
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
     
     def cancel_buy(self, account_id: str, display_order: int) -> int:
-        return self.cancel_use_case.cancel_buy(account_id, display_order)
+        '''
+        error codes:
+        -1: account does not exist
+        -2: no instrument has this display_order
+        -3: no such order to cancel
+        '''
+        try:
+            res: int = self.cancel_use_case.cancel_buy(account_id, display_order)
+            self.conn.commit()
+            return res
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
 
     def cancel_sell(self, account_id: str, display_order: int) -> int:
-        return self.cancel_use_case.cancel_sell(account_id, display_order)
+        '''
+        error codes are same as self.cancel_buy()
+        '''
+        try:
+            res: int = self.cancel_use_case.cancel_sell(account_id, display_order)
+            self.conn.commit()
+            return res
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
     
     def mark_occurred(self, display_order: int, did_occur: bool) -> int:
-        return self.mark_instrument_use_case.mark(display_order, did_occur)
+        '''
+        error codes:
+        -1: no instrument has this display_order
+        '''
+        try:
+            res: int = self.mark_instrument_use_case.mark(display_order, did_occur)
+            self.conn.commit()
+            return res
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
     
-    def pay_bonus(self) -> None:
-        self.pay_bonus_use_case.pay_bonus()
+    def pay_bonus(self) -> dict:
+        try:
+            res: dict = self.pay_bonus_use_case.pay_bonus()
+            self.conn.commit()
+            return res
+        except Exception as e:
+            print(e)
+            self.conn.rollback()
     
     def get_info(self) -> dict:
         return self.api_use_case.get_info()

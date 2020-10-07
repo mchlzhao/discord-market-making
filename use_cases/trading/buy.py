@@ -41,7 +41,6 @@ class BuyUseCase(BuySellUseCase):
             best_sell: Order = self.trading_repository.get_best_sell_using_display_order(display_order, 1)[0]
         except IndexError:
             best_sell: Order = None
-        print('best sell =', best_sell)
 
         if best_sell is None or price < best_sell.price:
             self.trading_repository.add_order(buy_order)

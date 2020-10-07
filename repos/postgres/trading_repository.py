@@ -21,7 +21,6 @@ class PostgresTradingRepository(ITradingRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
     def update_order_status_using_order(self, order: Order) -> None:
         query = '''UPDATE TradeOrder
@@ -35,7 +34,6 @@ class PostgresTradingRepository(ITradingRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
     def get_order(self, account_id: str, instrument_id: int, side: Side) -> Order:
         query = '''SELECT account_id, instrument_id, side, price, status
@@ -48,7 +46,6 @@ class PostgresTradingRepository(ITradingRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         res = cur.fetchone()
 
@@ -77,7 +74,6 @@ class PostgresTradingRepository(ITradingRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         return list(map(Order.from_tuple, cur.fetchall()))
 
@@ -98,7 +94,6 @@ class PostgresTradingRepository(ITradingRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         return list(map(Order.from_tuple, cur.fetchall()))
 
@@ -121,7 +116,6 @@ class PostgresTradingRepository(ITradingRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         return list(map(Order.from_tuple, cur.fetchall()))
 
@@ -142,6 +136,5 @@ class PostgresTradingRepository(ITradingRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
-        self.conn.commit()
 
         return list(map(Order.from_tuple, cur.fetchall()))

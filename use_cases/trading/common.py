@@ -18,13 +18,6 @@ class BuySellUseCase:
         self.transaction_repository: ITransactionRepository = transaction_repository
     
     def process_transaction(self, transaction: Transaction) -> None:
-        if transaction.maker_side == Side.BUY:
-            print('%s sold to %s: display_order = %d at %d' %
-                (transaction.seller_account.id, transaction.buyer_account.id, transaction.instrument.display_order, transaction.price))
-        else:
-            print('%s bought from %s: display_order = %d at %d' %
-                (transaction.buyer_account.id, transaction.seller_account.id, transaction.instrument.display_order, transaction.price))
-        
         self.position_repository.update_account_position_in_instrument(transaction.buyer_account, transaction.instrument, 1)
         self.position_repository.update_account_position_in_instrument(transaction.seller_account, transaction.instrument, -1)
         
