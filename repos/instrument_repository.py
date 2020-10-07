@@ -7,6 +7,9 @@ class IInstrumentRepository():
     def add_instrument_type(self, instrument_type: InstrumentType) -> None:
         raise NotImplementedError()
 
+    def get_description_using_type_id(self, type_id: int) -> str:
+        raise NotImplementedError()
+
     def get_instrument_type_by_similar_description(self, description: str) -> List[InstrumentType]:
         raise NotImplementedError()
 

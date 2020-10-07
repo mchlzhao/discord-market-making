@@ -71,7 +71,8 @@ class Controller:
         self.api_use_case: ApiUseCase = ApiUseCase(
             self.account_repository,
             self.instrument_repository,
-            self.position_repository
+            self.position_repository,
+            self.trading_repository
         )
     
     def add_account(self, account_id: str, name: str, balance: int) -> int:
@@ -95,8 +96,8 @@ class Controller:
     def pay_bonus(self) -> None:
         self.pay_bonus_use_case.pay_bonus()
     
-    def get_account_info(self) -> dict:
-        return self.api_use_case.get_account_info()
+    def get_info(self) -> dict:
+        return self.api_use_case.get_info()
     
     def clear_orders(self):
         '''

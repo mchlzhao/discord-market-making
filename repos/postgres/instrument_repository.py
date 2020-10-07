@@ -20,6 +20,22 @@ class PostgresInstrumentRepository(IInstrumentRepository):
         cur.execute(query, data)
         self.conn.commit()
     
+    def get_description_using_type_id(self, type_id: int) -> str:
+        query = '''SELECT description
+                   FROM InstrumentType
+                   WHERE id = %s'''
+        data = (type_id, )
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+        self.conn.commit()
+
+        res = cur.fetchone()
+        if res is None:
+            return None
+        
+        return res[0]
+    
     def get_instrument_type_by_similar_description(self, description: str) -> List[InstrumentType]:
         query = '''SELECT id, description
                    FROM InstrumentType
