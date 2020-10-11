@@ -24,3 +24,6 @@ class ITradingRepository:
 
     def get_best_sell_using_instrument_id(self, instrument_id: int, num_results: int = None) -> List[Order]:
         raise NotImplementedError()
+
+    def cancel_orders_using_display_order(self, display_order: int) -> None:
+        raise NotImplementedError()

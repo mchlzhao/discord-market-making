@@ -138,3 +138,16 @@ class PostgresTradingRepository(ITradingRepository):
         cur.execute(query, data)
 
         return list(map(Order.from_tuple, cur.fetchall()))
+
+    def cancel_orders_using_display_order(self, display_order: int) -> None:
+        query = '''UPDATE TradeOrder
+                   SET status = 'cancelled'
+                   FROM Instrument
+                   WHERE TradeOrder.instrument_id = Instrument.id
+                   AND display_order = %s
+                   AND is_active
+                   AND status = 'unfilled' '''
+        data = (display_order, )
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)

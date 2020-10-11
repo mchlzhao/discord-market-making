@@ -24,7 +24,7 @@ class Controller:
             port = 15432,
             dbname = 'market',
             user = 'postgres',
-            options = '-c search_path="market_test"',
+            options = '-c search_path="market"',
             password = config('POSTGRES_PW')
         )
 

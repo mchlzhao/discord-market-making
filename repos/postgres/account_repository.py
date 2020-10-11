@@ -93,3 +93,19 @@ class PostgresAccountRepository(IAccountRepository):
 
         cur = self.conn.cursor()
         cur.execute(query, data)
+
+    def get_weekly_balance(self, account_id: str, week_number: int) -> int:
+        query = '''SELECT balance
+                   FROM WeeklyBalance
+                   WHERE account_id = %s
+                   AND week_number = %s'''
+        data = (account_id, week_number)
+
+        cur = self.conn.cursor()
+        cur.execute(query, data)
+
+        res = cur.fetchone()
+        if res is None:
+            return None
+
+        return res[0]

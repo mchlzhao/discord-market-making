@@ -26,3 +26,6 @@ class IAccountRepository:
 
     def save_bonus_amount(self, account_id: str, week_number: int, bonus: int) -> None:
         raise NotImplementedError()
+
+    def get_weekly_balance(self, account_id: str, week_number: int) -> int:
+        raise NotImplementedError()

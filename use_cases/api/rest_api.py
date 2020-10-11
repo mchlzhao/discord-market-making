@@ -11,6 +11,8 @@ from repos.instrument_repository import IInstrumentRepository
 from repos.position_repository import IPositionRepository
 from repos.trading_repository import ITradingRepository
 
+import settings
+
 class ApiUseCase:
     def __init__(self, account_repository: IAccountRepository, instrument_repository: IInstrumentRepository,
             position_repository: IPositionRepository, trading_repository: ITradingRepository):
@@ -25,6 +27,9 @@ class ApiUseCase:
         instruments: List[Instrument] = self.instrument_repository.get_all_instruments()
         response: dict = {'accounts': [], 'instruments': []}
 
+        total_pos: dict = {t[0]: t[1] for t in
+            self.position_repository.get_total_positions_in_active_instruments() }
+
         for account in accounts:
             positions_dict: dict = {t[0]: t[1] for t in 
                 self.position_repository.get_all_positions_by_account(account)}
@@ -33,6 +38,8 @@ class ApiUseCase:
                 'id': account.id,
                 'name': account.name,
                 'balance': account.balance,
+                'weekly_balance': account.balance - self.account_repository.get_weekly_balance(account.id, settings.WEEK_NUMBER-1),
+                'total_positions': total_pos[account.id],
                 'positions': positions_dict
             })
         
