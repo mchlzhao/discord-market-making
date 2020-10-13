@@ -46,6 +46,8 @@ class SellUseCase(BuySellUseCase):
             self.trading_repository.add_order(sell_order)
             return (0, None)
         
+        sell_order.price = best_buy.price
+        
         best_buy.status = OrderStatus.FILLED
         sell_order.status = OrderStatus.FILLED
         self.trading_repository.update_order_status_using_order(best_buy)

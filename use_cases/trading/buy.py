@@ -45,6 +45,8 @@ class BuyUseCase(BuySellUseCase):
         if best_sell is None or price < best_sell.price:
             self.trading_repository.add_order(buy_order)
             return (0, None)
+
+        buy_order.price = best_sell.price
         
         buy_order.status = OrderStatus.FILLED
         best_sell.status = OrderStatus.FILLED
